@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="site" uuid="161ef6e5-1168-4170-a9ee-0cb889fbd3b6">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:C:\Users\Adamo\Studia\5_SEMESTR\JezykiSkryptowe\ExpenseTracker\TrackExpenses\expensetracker\site.db</jdbc-url>
+    </data-source>
+  </component>
+</project>
