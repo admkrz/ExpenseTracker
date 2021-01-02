@@ -1,7 +1,7 @@
 from flask import flash, render_template, redirect, url_for, request
 from flask_login import login_user, current_user, logout_user, login_required
 
-from expensetracker.forms import RegistrationForm, LoginForm
+from expensetracker.forms import RegistrationForm, LoginForm, UpdateAccountForm, ChangePasswordForm
 from expensetracker import app, db, bcrypt
 from expensetracker.models import User
 
@@ -49,7 +49,60 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/account')
+@app.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
-    return render_template('account.html', title='Account')
+    account_form = UpdateAccountForm()
+    password_form = ChangePasswordForm()
+
+    if account_form.validate_on_submit():
+        current_user.username = account_form.username.data
+        current_user.email = account_form.email.data
+        db.session.commit()
+        flash('Your account has been updated!', 'success')
+        return redirect(url_for('account'))
+    elif request.method == 'GET':
+        account_form.username.data = current_user.username
+        account_form.email.data = current_user.email
+
+    if password_form.validate_on_submit():
+        if bcrypt.check_password_hash(current_user.password, password_form.old_password.data):
+            new_password = bcrypt.generate_password_hash(password_form.password.data).decode('utf-8')
+            current_user.password = new_password
+            db.session.commit()
+            flash('Your password has been changed!', 'success')
+        else:
+            flash('Incorrect old password', 'danger')
+        return redirect(url_for('account'))
+
+    return render_template('account.html', title='Account', account_form=account_form, password_form=password_form)
+
+
+@app.route('/expenses')
+@login_required
+def expenses():
+    return render_template('expenses.html', title='Expenses')
+
+
+@app.route('/incomes')
+@login_required
+def incomes():
+    return render_template('incomes.html', title='Incomes')
+
+
+@app.route('/budgets')
+@login_required
+def budgets():
+    return render_template('budgets.html', title='Budgets')
+
+
+@app.route('/categories')
+@login_required
+def categories():
+    return render_template('categories.html', title='Categories')
+
+
+@app.route('/reports')
+@login_required
+def reports():
+    return render_template('reports.html', title='Reports')

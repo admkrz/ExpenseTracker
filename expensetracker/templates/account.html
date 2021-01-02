@@ -1,7 +1,131 @@
 {% extends "layout.html" %}
 
 {% block content %}
-
-<h1>{{current_user.username}}</h1>
-
+    <h1>Welcome, {{ current_user.username }}!</h1>
+    <br>
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Username and email</h5>
+                    <p>Update your username and email</p>
+                    <p><a class="btn btn-primary" data-toggle="collapse" href="#collapseAccountData" role="button"
+                          aria-expanded="false" aria-controls="collapseAccountData">Change data</a></p>
+                </div>
+                <div class="collapse" id="collapseAccountData">
+                    <form method="POST" action="">
+                        {{ account_form.hidden_tag() }}
+                        <fieldset class="form_group">
+                            <div class="form-group">
+                                {{ account_form.username.label(class="form-control-label") }}
+                                {% if account_form.username.errors %}
+                                    {{ account_form.username(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in account_form.username.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ account_form.username(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                {{ account_form.email.label(class="form-control-label") }}
+                                {% if account_form.email.errors %}
+                                    {{ account_form.email(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in account_form.email.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ account_form.email(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                        </fieldset>
+                        <div class="form-group">
+                            {{ account_form.submit(class="btn btn-outline-info") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Password</h5>
+                    <p>Update your password</p>
+                    <p><a class="btn btn-primary" data-toggle="collapse" href="#collapsePassword" role="button"
+                          aria-expanded="false" aria-controls="collapsePassword">Change Password</a></p>
+                </div>
+                <div class="collapse" id="collapsePassword">
+                    <form method="POST" action="">
+                        {{ password_form.hidden_tag() }}
+                        <fieldset class="form_group">
+                            <div class="form-group">
+                                {{ password_form.old_password.label(class="form-control-label") }}
+                                {% if password_form.old_password.errors %}
+                                    {{ password_form.old_password(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in password_form.old_password.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ password_form.old_password(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                {{ password_form.password.label(class="form-control-label") }}
+                                {% if password_form.password.errors %}
+                                    {{ password_form.password(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in password_form.password.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ password_form.password(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                {{ password_form.confirm_password.label(class="form-control-label") }}
+                                {% if password_form.confirm_password.errors %}
+                                    {{ password_form.confirm_password(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in password_form.confirm_password.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ password_form.confirm_password(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                        </fieldset>
+                        <div class="form-group">
+                            {{ password_form.submit(class="btn btn-outline-info") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col sm-3"></div>
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Statistics</h5>
+                    <ul style="text-align:left">
+                        <li><strong>User account created</strong>: DATA</li>
+                        <li><strong>Expenses added</strong>: number</li>
+                        <li><strong>Incomes added</strong>: number</li>
+                        <li><strong>Budgets created</strong>: number</li>
+                        <li><strong>Categories created</strong>: number</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col sm-3"></div>
+    </div>
 {% endblock %}
