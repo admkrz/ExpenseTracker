@@ -9,7 +9,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Username and email</h5>
                     <p>Update your username and email</p>
-                    <p><a class="btn btn-primary" data-toggle="collapse" href="#collapseAccountData" role="button"
+                    <p><a class="btn btn-primary" data-toggle="collapse" role="button" href="#collapseAccountData"
                           aria-expanded="false" aria-controls="collapseAccountData">Change data</a></p>
                 </div>
                 <div class="collapse" id="collapseAccountData">
@@ -55,7 +55,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Password</h5>
                     <p>Update your password</p>
-                    <p><a class="btn btn-primary" data-toggle="collapse" href="#collapsePassword" role="button"
+                    <p><a class="btn btn-primary" data-toggle="collapse" role="button" href="#collapsePassword"
                           aria-expanded="false" aria-controls="collapsePassword">Change Password</a></p>
                 </div>
                 <div class="collapse" id="collapsePassword">
@@ -111,7 +111,17 @@
         </div>
     </div>
     <div class="row">
-        <div class="col sm-3"></div>
+        <div class="col sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Currency</h5>
+                    <p>Change your currency</p>
+                    <p><a class="btn btn-primary" data-toggle="collapse" role="button" href="#collapseCurrency"
+                          aria-expanded="false" aria-controls="collapseCurrency">Change Currency</a></p>
+                </div>
+                <div class="collapse" id="collapseCurrency"></div>
+            </div>
+        </div>
         <div class="col-sm-6">
             <div class="card">
                 <div class="card-body">
@@ -126,6 +136,5 @@
                 </div>
             </div>
         </div>
-        <div class="col sm-3"></div>
     </div>
 {% endblock %}
