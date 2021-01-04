@@ -14,3 +14,7 @@ login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
 
 from expensetracker import routes
+
+#db.drop_all()
+#db.create_all()
+#db.session.commit()

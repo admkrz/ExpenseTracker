@@ -2,6 +2,29 @@
 
 {% block content %}
 
-<h1>HELLO WORLD</h1>
+    <h1>Manage your categories</h1>
+    <br>
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Expense Categories</h5>
+                    <p>Create new, update or remove your expense categories</p>
+                    <p><a class="btn btn-primary" role="button" href={{ url_for('expense_categories') }}>Manage Expense Categories</a>
+                    </p>
+                </div>
+            </div>
+        </div>
 
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Income Categories</h5>
+                    <p>Create new, update or remove your income categories</p>
+                    <p><a class="btn btn-primary" role="button" href={{ url_for('income_categories') }}>Manage Income Categories</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

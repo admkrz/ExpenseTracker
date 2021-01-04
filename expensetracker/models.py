@@ -1,3 +1,4 @@
+import enum
 from datetime import datetime
 
 from flask_login import UserMixin
@@ -10,10 +11,9 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-user_categories = db.Table('association', db.Model.metadata,
-                           db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-                           db.Column('category_id', db.Integer, db.ForeignKey('category.id'))
-                           )
+class CategoryType(enum.Enum):
+    income = 'income'
+    expense = 'expense'
 
 
 class User(db.Model, UserMixin):
@@ -21,8 +21,9 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
+    currency = db.Column(db.String(3))
     accounts = db.relationship('Account', backref='user', lazy=True)
-    categories = db.relationship('Category', secondary=user_categories, back_populates="users")
+    categories = db.relationship('Category', backref='user', lazy='dynamic')
 
     def __repr__(self):
         return f"User('{self.username}', '{self.email}')"
@@ -64,14 +65,10 @@ class Income(db.Model):
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-    users = db.relationship('User', secondary=user_categories, back_populates="categories")
+    name = db.Column(db.String(50), nullable=False)
+    type = db.Column(db.Enum(CategoryType), nullable=False)
+    hidden = db.Column(db.Boolean, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
         return f"Category('{self.name}')"
-
-
-
-db.create_all()
-db.session.commit()
-

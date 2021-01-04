@@ -1,8 +1,9 @@
 from flask import flash
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
+import ccy
 
 from expensetracker.models import User
 
@@ -14,6 +15,7 @@ def equalTo(password):
             raise ValidationError('Both passwords must be identical')
 
     return _equalTo
+
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
@@ -65,3 +67,28 @@ class ChangePasswordForm(FlaskForm):
     confirm_password = PasswordField('Confirm password', validators=[DataRequired(), equalTo('password')])
     submit = SubmitField('Change password')
 
+
+class ChangeCurrencyForm(FlaskForm):
+    currencies = []
+    list = ccy.all()
+    for item in sorted(list):
+        currency = ccy.currency(item)
+        currencies.append((item, item + " - " + currency.name))
+    currency = SelectField(u'Currency', choices=currencies)
+    submit = SubmitField('Set currency')
+
+
+class CreateCategoryForm(FlaskForm):
+    category = StringField('Category', validators=[DataRequired()])
+    submit = SubmitField('Create Category')
+
+
+class RenameCategoryForm(FlaskForm):
+    old_category = StringField('Old Name', validators=[DataRequired()])
+    new_category = StringField('New Name', validators=[DataRequired()])
+    submit = SubmitField('Rename Category')
+
+
+class DeleteCategoryForm(FlaskForm):
+    category_to_delete = StringField('Old Name', validators=[DataRequired()])
+    submit = SubmitField('Delete Category')
