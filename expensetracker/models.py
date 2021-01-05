@@ -22,27 +22,27 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
     currency = db.Column(db.String(3))
-    accounts = db.relationship('Account', backref='user', lazy=True)
+    budgets = db.relationship('Budget', backref='user', lazy='dynamic')
     categories = db.relationship('Category', backref='user', lazy='dynamic')
 
     def __repr__(self):
         return f"User('{self.username}', '{self.email}')"
 
 
-class Account(db.Model):
+class Budget(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    expenses = db.relationship('Expense', backref='account', lazy=True)
-    incomes = db.relationship('Income', backref='account', lazy=True)
+    expenses = db.relationship('Expense', backref='budget', lazy='dynamic')
+    incomes = db.relationship('Income', backref='budget', lazy='dynamic')
 
     def __repr__(self):
-        return f"Account('{self.name}, {self.user})"
+        return f"Budget('{self.name}, {self.user})"
 
 
 class Expense(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
+    budget_id = db.Column(db.Integer, db.ForeignKey('budget.id'), nullable=False)
     description = db.Column(db.String(500), nullable=False)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow().strftime('%Y-%m-%d'))
     amount = db.Column(db.Float, nullable=False)
@@ -54,7 +54,7 @@ class Expense(db.Model):
 
 class Income(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
+    budget_id = db.Column(db.Integer, db.ForeignKey('budget.id'), nullable=False)
     description = db.Column(db.String(500), nullable=False)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow().strftime('%Y-%m-%d'))
     amount = db.Column(db.Float, nullable=False)

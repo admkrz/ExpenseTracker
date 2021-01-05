@@ -1,11 +1,11 @@
 // While the Rename modal is showing set the old name field
 $('#renameModal').on('show.bs.modal', function (event) {
     var button = $(event.relatedTarget) // Button that triggered the modal
-    var category = button.data('category') // Extract info from data-* attributes
+    var budget = button.data('budget') // Extract info from data-* attributes
     var input = document.getElementById('old_name')
     var submit = document.getElementById('submitFormButton')
     submit.hidden = true
-    input.value = category
+    input.value = budget
     input.setAttribute("readOnly", true)
 
 })
@@ -23,17 +23,17 @@ $('#saveChanges').click(function () {
 // While the delete modal is showing set the old name field and hide it
 $('#deleteModal').on('show.bs.modal', function (event) {
     var button = $(event.relatedTarget) // Button that triggered the modal
-    var category = button.data('category') // Extract info from data-* attributes
+    var budget = button.data('budget') // Extract info from data-* attributes
     var input = document.getElementById('item_to_delete')
     var submit = document.getElementById('deleteFormButton')
     submit.hidden = true
-    input.value = category
+    input.value = budget
     input.hidden = true
     var modal=$(this)
-    modal.find('.modal-title').text("Delete category '" + category + "'")
+    modal.find('.modal-title').text("Delete budget '" + budget + "'")
 })
 
 //Submit rename form on button click
-$('#btnDeleteCategory').click(function () {
+$('#deleteBudget').click(function () {
     document.getElementById('deleteFormButton').click()
 })

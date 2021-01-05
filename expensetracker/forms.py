@@ -83,12 +83,17 @@ class CreateCategoryForm(FlaskForm):
     submit = SubmitField('Create Category')
 
 
-class RenameCategoryForm(FlaskForm):
-    old_category = StringField('Old Name', validators=[DataRequired()])
-    new_category = StringField('New Name', validators=[DataRequired()])
-    submit = SubmitField('Rename Category')
+class RenameForm(FlaskForm):
+    old_name = StringField('Old Name', validators=[DataRequired()])
+    new_name = StringField('New Name', validators=[DataRequired()])
+    submit = SubmitField('Rename')
 
 
-class DeleteCategoryForm(FlaskForm):
-    category_to_delete = StringField('Old Name', validators=[DataRequired()])
+class DeleteForm(FlaskForm):
+    item_to_delete = StringField('Old Name', validators=[DataRequired()])
     submit = SubmitField('Delete Category')
+
+
+class CreateBudgetForm(FlaskForm):
+    name = StringField('Budget Name', validators=[DataRequired()])
+    submit = SubmitField('Create Budget')

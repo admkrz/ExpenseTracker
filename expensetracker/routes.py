@@ -2,9 +2,9 @@ from flask import flash, render_template, redirect, url_for, request
 from flask_login import login_user, current_user, logout_user, login_required
 
 from expensetracker.forms import RegistrationForm, LoginForm, UpdateAccountForm, ChangePasswordForm, ChangeCurrencyForm, \
-    CreateCategoryForm, RenameCategoryForm, DeleteCategoryForm
+    CreateCategoryForm, RenameForm, DeleteForm, CreateBudgetForm
 from expensetracker import app, db, bcrypt
-from expensetracker.models import User, Category, CategoryType
+from expensetracker.models import User, Category, CategoryType, Budget
 
 
 @app.route('/')
@@ -101,10 +101,47 @@ def incomes():
     return render_template('incomes.html', title='Incomes')
 
 
-@app.route('/budgets')
+@app.route('/budgets', methods=['GET', 'POST'])
 @login_required
 def budgets():
-    return render_template('budgets.html', title='Budgets')
+    budget_form = CreateBudgetForm()
+    rename_form = RenameForm()
+    delete_form = DeleteForm()
+    user = User.query.filter_by(username=current_user.username).first()
+    user_budgets = user.budgets
+    budgets = user_budgets.filter_by().all()
+
+    if budget_form.validate_on_submit():
+        budget = user_budgets.filter_by(name=budget_form.name.data).first()
+        if budget:
+            flash('Budget with this name already exists!', 'danger')
+        else:
+            budget = Budget(name=budget_form.name.data, user=current_user)
+            db.session.add(budget)
+            db.session.commit()
+            flash('Budget created!', 'success')
+        return redirect(url_for('budgets'))
+
+    if rename_form.validate_on_submit():
+        old_budget = user_budgets.filter_by(name=rename_form.old_name.data).first()
+        new_budget = user_budgets.filter_by(name=rename_form.new_name.data).first()
+        if new_budget:
+            flash('Budget with this name already exists!', 'danger')
+        else:
+            old_budget.name = rename_form.new_name.data
+            db.session.commit()
+            flash('Budget name changed!', 'success')
+        return redirect(url_for('budgets'))
+
+    if delete_form.validate_on_submit():
+        budget = user_budgets.filter_by(name=delete_form.item_to_delete.data)
+        budget.delete()
+        db.session.commit()
+        flash(f"Budget '{delete_form.item_to_delete.data}' deleted!", 'danger')
+        return redirect(url_for('budgets'))
+
+    return render_template('budgets.html', title='Budgets', budgets=budgets, create_bugdet_form=budget_form,
+                           rename_form=rename_form, delete_form=delete_form)
 
 
 @app.route('/categories')
@@ -127,8 +164,8 @@ def expense_categories():
 
 def manage_categories(category_type, type_name):
     category_form = CreateCategoryForm()
-    rename_form = RenameCategoryForm()
-    delete_form = DeleteCategoryForm()
+    rename_form = RenameForm()
+    delete_form = DeleteForm()
     user = User.query.filter_by(username=current_user.username).first()
     user_categories = user.categories
     categories = user_categories.filter_by(type=category_type, hidden=False).all()
@@ -150,33 +187,34 @@ def manage_categories(category_type, type_name):
         return redirect(url_for(f'{type_name.lower()}_categories'))
 
     if rename_form.validate_on_submit():
-        category = user_categories.filter_by(name=rename_form.old_category.data, type=category_type,
+        category = user_categories.filter_by(name=rename_form.old_name.data, type=category_type,
                                              hidden=False).first()
-        new_category = user_categories.filter_by(name=rename_form.new_category.data, type=category_type).first()
+        new_category = user_categories.filter_by(name=rename_form.new_name.data, type=category_type).first()
         if new_category and not new_category.hidden:
             flash('Category with this name already exists!', 'danger')
         elif new_category and new_category.hidden:
             # SWITCH ALL INSTANCES TO NEW_CATEGORY
             new_category.hidden = False
-            user_categories.filter_by(name=rename_form.old_category.data, type=category_type,
+            user_categories.filter_by(name=rename_form.old_name.data, type=category_type,
                                       hidden=False).delete()
             db.session.commit()
         else:
-            category.name = rename_form.new_category.data
+            category.name = rename_form.new_name.data
             db.session.commit()
-            flash(f'New {type_name} category created!', 'success')
+            flash(f'{type_name} category name changed!', 'success')
         return redirect(url_for(f'{type_name.lower()}_categories'))
 
     if delete_form.validate_on_submit():
-        category = user_categories.filter_by(name=delete_form.category_to_delete.data, type=category_type,
+        category = user_categories.filter_by(name=delete_form.item_to_delete.data, type=category_type,
                                              hidden=False).first()
         category.hidden = True
         db.session.commit()
-        flash(f"{type_name} category '{delete_form.category_to_delete.data}' deleted!", 'danger')
+        flash(f"{type_name} category '{delete_form.item_to_delete.data}' deleted!", 'danger')
         return redirect(url_for(f'{type_name.lower()}_categories'))
 
     return render_template('managecategories.html', title=f'{type_name} Categories', category_form=category_form,
-                           rename_form=rename_form, delete_form=delete_form, categories=categories, category_type=type_name)
+                           rename_form=rename_form, delete_form=delete_form, categories=categories,
+                           category_type=type_name)
 
 
 @app.route('/reports')

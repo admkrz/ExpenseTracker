@@ -84,20 +84,20 @@
                         {{ rename_form.hidden_tag() }}
                         <fieldset class="form_group">
                             <div class="form-group">
-                                {{ rename_form.old_category.label(class="form-control-label") }}
-                                {{ rename_form.old_category(class="form-control form-control-lg") }}
+                                {{ rename_form.old_name.label(class="form-control-label") }}
+                                {{ rename_form.old_name(class="form-control form-control-lg") }}
                             </div>
                             <div class="form-group">
-                                {{ rename_form.new_category.label(class="form-control-label") }}
-                                {% if rename_form.new_category.errors %}
-                                    {{ rename_form.new_category(class="form-control form-control-lg is-invalid") }}
+                                {{ rename_form.new_name.label(class="form-control-label") }}
+                                {% if rename_form.new_name.errors %}
+                                    {{ rename_form.new_name(class="form-control form-control-lg is-invalid") }}
                                     <div class="invalid-feedback">
-                                        {% for error in rename_form.new_category.errors %}
+                                        {% for error in rename_form.new_name.errors %}
                                             <span>{{ error }}</span>
                                         {% endfor %}
                                     </div>
                                 {% else %}
-                                    {{ rename_form.new_category(class="form-control form-control-lg", value=category) }}
+                                    {{ rename_form.new_name(class="form-control form-control-lg") }}
                                 {% endif %}
                             </div>
                         </fieldset>
@@ -134,7 +134,7 @@
                         {{ delete_form.hidden_tag() }}
                         <fieldset class="form_group">
                             <div class="form-group">
-                                {{ delete_form.category_to_delete(class="form-control form-control-lg") }}
+                                {{ delete_form.item_to_delete(class="form-control form-control-lg") }}
                             </div>
                         </fieldset>
                         <div class="form-group">

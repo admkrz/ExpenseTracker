@@ -2,6 +2,168 @@
 
 {% block content %}
 
-<h1>HELLO WORLD</h1>
+    <h1>Manage your budgets</h1>
+    <br>
 
+    <div class="row">
+        {% for budget in budgets %}
+            <div class="col-sm-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ budget.name }}</h5>
+                        <p>Weeee, your budget</p>
+
+                        <div class="btn-group">
+                                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown"
+                                        aria-haspopup="true" aria-expanded="false">
+                                    Manage budget
+                                </button>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="#renameModal" data-toggle="modal"
+                                       data-target="#renameModal"
+                                       data-budget="{{ budget.name }}" id="renameButton">Rename</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="#" data-toggle="modal" data-target="#deleteModal"
+                                       data-budget="{{ budget.name }}">Delete</a>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- if last column in row -->
+            {% if loop.index%3 == 0 and not loop.last %}
+                </div>
+                <div class="row mt-5">
+            {% endif %}
+
+        {% if loop.last %}
+            {% if loop.index%3 == 0 %}
+                </div>
+                <div class="row mt-5">
+            {% endif %}
+        {% endif %}
+        {% endfor %}
+        <div class="col-sm-4">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Add a new budget</h4>
+                    <p>Create new budget to better manage incomes and expenses from different sources</p>
+                    <p><a class="btn btn-primary" data-toggle="collapse" role="button" href="#collapseCreateBudget"
+                          aria-expanded="false" aria-controls="collapseCreateBudget">Create a new budget</a>
+                    </p>
+                </div>
+                <div class="collapse" id="collapseCreateBudget">
+                    <form method="POST" action="">
+                        {{ create_bugdet_form.hidden_tag() }}
+                        <fieldset class="form_group">
+                            <div class="form-group">
+                                {{ create_bugdet_form.name.label(class="form-control-label") }}
+                                {% if create_bugdet_form.name.errors %}
+                                    {{ create_bugdet_form.name(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in create_bugdet_form.name.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ create_bugdet_form.name(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                        </fieldset>
+                        <div class="form-group">
+                            {{ create_bugdet_form.submit(class="btn btn-outline-info") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        </div>
+
+    <div class="modal fade" id="renameModal" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Rename your budget</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="">
+                        {{ rename_form.hidden_tag() }}
+                        <fieldset class="form_group">
+                            <div class="form-group">
+                                {{ rename_form.old_name.label(class="form-control-label") }}
+                                {{ rename_form.old_name(class="form-control form-control-lg") }}
+                            </div>
+                            <div class="form-group">
+                                {{ rename_form.new_name.label(class="form-control-label") }}
+                                {% if rename_form.new_name.errors %}
+                                    {{ rename_form.new_name(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in rename_form.new_name.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ rename_form.new_name(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                        </fieldset>
+                        <div class="form-group">
+                            {{ rename_form.submit(class="btn btn-outline-info", id="submitFormButton") }}
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="saveChanges">
+                        Save Changes
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby=deleteModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Delete your budget</h3>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="">
+                        {{ delete_form.hidden_tag() }}
+                        <fieldset class="form_group">
+                            <div class="form-group">
+                                {{ delete_form.item_to_delete(class="form-control form-control-lg") }}
+                            </div>
+                        </fieldset>
+                        <div class="form-group">
+                            {{ delete_form.submit(class="btn btn-outline-info", id="deleteFormButton") }}
+                        </div>
+                    </form>
+                    <p class="text-danger"><strong>Are you sure you want to delete this budget?</strong></p>
+                    <ul class="text-danger" style="text-align:center">
+                        <li class="text-danger">The budget will no longer be available</li>
+                        <br/>
+                        <li class="text-danger">All incomes and expenses connected to this budget will also be deleted
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="deleteBudget">Delete Budget</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/budgets.js"></script>
 {% endblock %}
