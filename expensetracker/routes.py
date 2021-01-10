@@ -95,10 +95,34 @@ def expenses():
     return render_template('expenses.html', title='Expenses')
 
 
+@app.route('/expenses/add')
+@login_required
+def add_expenses():
+    return render_template('addexpenses.html', title='Add Expenses')
+
+
+@app.route('/expenses/manage')
+@login_required
+def manage_expenses():
+    return render_template('manageexpenses.html', title='Manage Expenses')
+
+
 @app.route('/incomes')
 @login_required
 def incomes():
     return render_template('incomes.html', title='Incomes')
+
+
+@app.route('/incomes/add')
+@login_required
+def add_incomes():
+    return render_template('addincomes.html', title='Add Incomes')
+
+
+@app.route('/incomes/manage')
+@login_required
+def manage_incomes():
+    return render_template('manageincomes.html', title='Manage Incomes')
 
 
 @app.route('/budgets', methods=['GET', 'POST'])

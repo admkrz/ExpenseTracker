@@ -2,6 +2,29 @@
 
 {% block content %}
 
-<h1>HELLO WORLD</h1>
+    <h1>Manage your Incomes</h1>
+    <br>
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Add new Income</h5>
+                    <p>Create new income to your budgets</p>
+                    <p><a class="btn btn-primary" role="button" href={{ url_for('add_incomes') }}>Add Income</a>
+                    </p>
+                </div>
+            </div>
+        </div>
 
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">View or update Income history</h5>
+                    <p>Display your expense history and make changes if needed.</p>
+                    <p><a class="btn btn-primary" role="button" href={{ url_for('manage_incomes') }}>View or Update Incomes</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

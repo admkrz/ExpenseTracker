@@ -2,6 +2,29 @@
 
 {% block content %}
 
-<h1>HELLO WORLD</h1>
+    <h1>Manage your expenses</h1>
+    <br>
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Add new expense</h5>
+                    <p>Create new expense to your budgets</p>
+                    <p><a class="btn btn-primary" role="button" href={{ url_for('add_expenses') }}>Add Expense</a>
+                    </p>
+                </div>
+            </div>
+        </div>
 
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">View or update expense history</h5>
+                    <p>Display your expense history and make changes if needed.</p>
+                    <p><a class="btn btn-primary" role="button" href={{ url_for('manage_expenses') }}>View or Update Expenses</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
