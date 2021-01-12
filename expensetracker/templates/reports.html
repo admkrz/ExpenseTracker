@@ -2,6 +2,48 @@
 
 {% block content %}
 
-<h1>HELLO WORLD</h1>
+ <h1>Reports</h1>
+    <br>
+
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Budget Overview</h5>
+            <p>View your budgets and budget balances in this report.</p>
+            <a href="/budgetsreport" class="btn btn-primary">View Report</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Monthly Spending</h5>
+            <p>View your month-over-month expenses.</p>
+            <a href="/monthlyreport" class="btn btn-primary">View Report</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Spending Categories</h5>
+            <p>View your monthly spending and incomes divided between categories.</p>
+            <a href="/spendingreport" class="btn btn-primary">View Report</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Average finances</h5>
+            <p>View your average daily, monthly and yearly expenses and incomes.</p>
+            <a href="/payersreport" class="btn btn-primary">View Report</a>
+          </div>
+        </div>
+      </div>
+    </div>
 
 {% endblock %}

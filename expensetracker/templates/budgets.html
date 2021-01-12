@@ -11,22 +11,29 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">{{ budget.name }}</h5>
-                        <p>Weeee, your budget</p>
 
+                        <ul style="text-align:left">
+                            <li><strong>Expenses</strong>: {{ budget.expenses.filter_by().all()|length }}</li>
+                            <li><strong>Incomes</strong>: {{ budget.incomes.filter_by().all()|length }}</li>
+                        </ul>
+
+                        <strong style="font-size: large">Balance: {{ budget.balance }}</strong>
+                        <br>
+                        <br>
                         <div class="btn-group">
-                                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown"
-                                        aria-haspopup="true" aria-expanded="false">
-                                    Manage budget
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item" href="#renameModal" data-toggle="modal"
-                                       data-target="#renameModal"
-                                       data-budget="{{ budget.name }}" id="renameButton">Rename</a>
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item" href="#" data-toggle="modal" data-target="#deleteModal"
-                                       data-budget="{{ budget.name }}">Delete</a>
-                                </div>
+                            <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown"
+                                    aria-haspopup="true" aria-expanded="false">
+                                Manage budget
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="#renameModal" data-toggle="modal"
+                                   data-target="#renameModal"
+                                   data-budget="{{ budget.name }}" id="renameButton">Rename</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#deleteModal"
+                                   data-budget="{{ budget.name }}">Delete</a>
                             </div>
+                        </div>
                     </div>
                 </div>
             </div>

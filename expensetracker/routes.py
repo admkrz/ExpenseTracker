@@ -2,14 +2,33 @@ from flask import flash, render_template, redirect, url_for, request
 from flask_login import login_user, current_user, logout_user, login_required
 
 from expensetracker.forms import RegistrationForm, LoginForm, UpdateAccountForm, ChangePasswordForm, ChangeCurrencyForm, \
-    CreateCategoryForm, RenameForm, DeleteForm, CreateBudgetForm
+    CreateCategoryForm, RenameForm, DeleteForm, CreateBudgetForm, ExpenseForm
 from expensetracker import app, db, bcrypt
-from expensetracker.models import User, Category, CategoryType, Budget
+from expensetracker.models import User, Category, CategoryType, Budget, Expense
 
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    if current_user.is_authenticated:
+        user = User.query.filter_by(username=current_user.username).first()
+
+        categories = []
+        for category in user.categories.filter_by(type=CategoryType.expense).all():
+            categories.append((category, category.name))
+
+        budgets = []
+        for budget in user.budgets.filter_by().all():
+            budgets.append((budget, budget.name))
+
+        form = ExpenseForm()
+        form.budget.choices = budgets
+        form.category.choices = categories
+
+        expenses = user.budgets.filter_by().first().expenses.filter_by().all()
+
+        return render_template('index.html', form=form, expenses=expenses)
+    else:
+        return redirect('login')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -95,16 +114,39 @@ def expenses():
     return render_template('expenses.html', title='Expenses')
 
 
-@app.route('/expenses/add')
+@app.route('/expenses/add', methods=['GET', 'POST'])
 @login_required
 def add_expenses():
-    return render_template('addexpenses.html', title='Add Expenses')
+    user = User.query.filter_by(username=current_user.username).first()
+
+    categories = []
+    for category in user.categories.filter_by(type=CategoryType.expense).all():
+        categories.append((category, category.name))
+
+    budgets = []
+    for budget in user.budgets.filter_by().all():
+        budgets.append((budget, budget.name))
+
+    form = ExpenseForm()
+    form.budget.choices = budgets
+    form.category.choices = categories
+
+    if form.validate_on_submit():
+        expense = Expense(budget_id=form.budget.data, description=form.description.data, date=form.date.data,
+                          amount=form.amount.data, category=form.category.data)
+        db.session.add(expense)
+        db.session.commit()
+        flash('Expense created!', 'success')
+        return redirect(url_for('add_expenses'))
+    return render_template('addexpenses.html', title='Add Expenses', form=form)
 
 
 @app.route('/expenses/manage')
 @login_required
 def manage_expenses():
-    return render_template('manageexpenses.html', title='Manage Expenses')
+    user = User.query.filter_by(username=current_user.username).first()
+    expenses = user.budgets.filter_by().first().expenses.filter_by().all()
+    return render_template('manageexpenses.html', title='Manage Expenses', expenses=expenses)
 
 
 @app.route('/incomes')
