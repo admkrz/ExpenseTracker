@@ -2,9 +2,9 @@ from flask import flash, render_template, redirect, url_for, request
 from flask_login import login_user, current_user, logout_user, login_required
 
 from expensetracker.forms import RegistrationForm, LoginForm, UpdateAccountForm, ChangePasswordForm, ChangeCurrencyForm, \
-    CreateCategoryForm, RenameForm, DeleteForm, CreateBudgetForm, ExpenseForm
+    CreateCategoryForm, RenameForm, DeleteForm, CreateBudgetForm, TransactionForm
 from expensetracker import app, db, bcrypt
-from expensetracker.models import User, Category, CategoryType, Budget, Expense
+from expensetracker.models import User, Category, Budget, Transaction, TransactionType
 
 
 @app.route('/')
@@ -13,20 +13,25 @@ def index():
         user = User.query.filter_by(username=current_user.username).first()
 
         categories = []
-        for category in user.categories.filter_by(type=CategoryType.expense).all():
+        for category in user.categories.filter_by(type=TransactionType.expense).all():
             categories.append((category, category.name))
 
         budgets = []
         for budget in user.budgets.filter_by().all():
             budgets.append((budget, budget.name))
 
-        form = ExpenseForm()
+        form = TransactionForm()
         form.budget.choices = budgets
         form.category.choices = categories
 
-        expenses = user.budgets.filter_by().first().expenses.filter_by().all()
+        if user.budgets.filter_by().first() is not None:
+            expenses = user.budgets.filter_by().first().transactions.filter_by(type='expense').all()
+            incomes = user.budgets.filter_by().first().transactions.filter_by(type='income').all()
+        else:
+            expenses = None
+            incomes = None
 
-        return render_template('index.html', form=form, expenses=expenses)
+        return render_template('index.html', form=form, expenses=expenses, incomes=incomes)
     else:
         return redirect('login')
 
@@ -114,31 +119,48 @@ def expenses():
     return render_template('expenses.html', title='Expenses')
 
 
+@app.route('/incomes')
+@login_required
+def incomes():
+    return render_template('incomes.html', title='Incomes')
+
+
 @app.route('/expenses/add', methods=['GET', 'POST'])
 @login_required
 def add_expenses():
+    return add_transaction('Expense')
+
+
+@app.route('/incomes/add', methods=['GET', 'POST'])
+@login_required
+def add_incomes():
+    return add_transaction('Income')
+
+
+def add_transaction(type):
     user = User.query.filter_by(username=current_user.username).first()
+    currency = user.currency
 
     categories = []
-    for category in user.categories.filter_by(type=CategoryType.expense).all():
-        categories.append((category, category.name))
+    for category in user.categories.filter_by(type=type.lower()).all():
+        categories.append((category.id, category.name))
 
     budgets = []
     for budget in user.budgets.filter_by().all():
-        budgets.append((budget, budget.name))
+        budgets.append((budget.id, budget.name))
 
-    form = ExpenseForm()
+    form = TransactionForm()
     form.budget.choices = budgets
     form.category.choices = categories
 
     if form.validate_on_submit():
-        expense = Expense(budget_id=form.budget.data, description=form.description.data, date=form.date.data,
-                          amount=form.amount.data, category=form.category.data)
-        db.session.add(expense)
-        db.session.commit()
-        flash('Expense created!', 'success')
-        return redirect(url_for('add_expenses'))
-    return render_template('addexpenses.html', title='Add Expenses', form=form)
+        transaction = Transaction(budget_id=int(form.budget.data), description=form.description.data, date=form.date.data,
+                                  amount=float(form.amount.data), category_id=int(form.category.data), type=type.lower())
+        db.session.add(transaction)
+        flash(f'{type} created!', 'success')
+        return redirect(url_for(f'add_{type.lower()}s'))
+
+    return render_template('addtransaction.html', title=f'Add {type}', type=type, form=form, currency=currency)
 
 
 @app.route('/expenses/manage')
@@ -147,18 +169,6 @@ def manage_expenses():
     user = User.query.filter_by(username=current_user.username).first()
     expenses = user.budgets.filter_by().first().expenses.filter_by().all()
     return render_template('manageexpenses.html', title='Manage Expenses', expenses=expenses)
-
-
-@app.route('/incomes')
-@login_required
-def incomes():
-    return render_template('incomes.html', title='Incomes')
-
-
-@app.route('/incomes/add')
-@login_required
-def add_incomes():
-    return render_template('addincomes.html', title='Add Incomes')
 
 
 @app.route('/incomes/manage')
@@ -219,13 +229,13 @@ def categories():
 @app.route('/categories/income', methods=['GET', 'POST'])
 @login_required
 def income_categories():
-    return manage_categories(CategoryType.income, 'Income')
+    return manage_categories(TransactionType.income, 'Income')
 
 
 @app.route('/categories/expense', methods=['GET', 'POST'])
 @login_required
 def expense_categories():
-    return manage_categories(CategoryType.expense, 'Expense')
+    return manage_categories(TransactionType.expense, 'Expense')
 
 
 def manage_categories(category_type, type_name):

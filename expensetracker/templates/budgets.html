@@ -13,11 +13,11 @@
                         <h5 class="card-title">{{ budget.name }}</h5>
 
                         <ul style="text-align:left">
-                            <li><strong>Expenses</strong>: {{ budget.expenses.filter_by().all()|length }}</li>
-                            <li><strong>Incomes</strong>: {{ budget.incomes.filter_by().all()|length }}</li>
+                            <li><strong>Expenses</strong>: {{ budget.transactions.filter_by(type='expense').all()|length }}</li>
+                            <li><strong>Incomes</strong>: {{ budget.transactions.filter_by(type='income').all()|length }}</li>
                         </ul>
 
-                        <strong style="font-size: large">Balance: {{ budget.balance }}</strong>
+                        <strong style="font-size: large">Total Balance: {{ budget.balance }}</strong>
                         <br>
                         <br>
                         <div class="btn-group">

@@ -12,7 +12,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-class CategoryType(enum.Enum):
+class TransactionType(enum.Enum):
     income = 'income'
     expense = 'expense'
 
@@ -35,54 +35,57 @@ class Budget(db.Model):
     name = db.Column(db.String(50), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     balance = db.Column(db.Float, default=0.0)
-    expenses = db.relationship('Expense', backref='budget', lazy='dynamic')
-    incomes = db.relationship('Income', backref='budget', lazy='dynamic')
+    transactions = db.relationship('Transaction', backref='budget', lazy='dynamic')
 
     def __repr__(self):
         return f"Budget('{self.name}, {self.user})"
 
 
-@event.listens_for(Budget, 'before_insert')
-def update_created_modified_on_create_listener(mapper, connection, target):
-    target.balance = 0.0
-
-
-@event.listens_for(Budget, 'before_update')
-def update_modified_on_update_listener(mapper, connection, target):
-    incomes = sum(income.amount for income in target.incomes.filter_by().all())
-    expenses = sum(expense.amount for expense in target.expenses.filter_by().all())
-    target.balance = incomes - expenses
-
-
-class Expense(db.Model):
+class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     budget_id = db.Column(db.Integer, db.ForeignKey('budget.id'), nullable=False)
     description = db.Column(db.String(500), nullable=False)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow().strftime('%Y-%m-%d'))
     amount = db.Column(db.Float, nullable=False)
-    category = db.Column(db.String(50), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+    type = db.Column(db.Enum(TransactionType), nullable=False)
 
     def __repr__(self):
-        return f"Expense('{self.description}, {self.date}, {self.amount}')"
-
-
-class Income(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    budget_id = db.Column(db.Integer, db.ForeignKey('budget.id'), nullable=False)
-    description = db.Column(db.String(500), nullable=False)
-    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow().strftime('%Y-%m-%d'))
-    amount = db.Column(db.Float, nullable=False)
-
-    def __repr__(self):
-        return f"Income('{self.description}, {self.date}, {self.amount}')"
+        return f"Transaction('{self.description}, {self.date}, {self.amount}')"
 
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
-    type = db.Column(db.Enum(CategoryType), nullable=False)
+    type = db.Column(db.Enum(TransactionType), nullable=False)
     hidden = db.Column(db.Boolean, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    transactions = db.relationship('Transaction', backref='category', lazy='dynamic')
 
     def __repr__(self):
         return f"{self.name}"
+
+
+def sum_balance(budget):
+    incomes = sum(income.amount for income in budget.transactions.filter_by(type='income').all())
+    expenses = sum(expense.amount for expense in budget.transactions.filter_by(type='expense').all())
+    return incomes - expenses
+
+
+@event.listens_for(Transaction, 'after_insert')
+def on_create_listener(mapper, connection, target):
+    budget = Budget.query.filter_by(id=target.budget_id).first()
+    budget.balance = sum_balance(budget)
+    db.session.commit()
+
+
+@event.listens_for(Transaction, 'after_update')
+def on_update_listener(mapper, connection, target):
+    budget = Budget.query.filter_by(id=target.budget_id).first()
+    budget.balance = sum_balance(budget)
+    db.session.commit()
+
+
+@event.listens_for(Budget, 'before_insert')
+def on_create_listener(mapper, connection, target):
+    target.balance = 0.0

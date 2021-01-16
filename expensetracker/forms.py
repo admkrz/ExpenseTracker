@@ -2,10 +2,10 @@ from flask import flash
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField, DateField, FloatField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Regexp
 import ccy
 
-from expensetracker.models import User, CategoryType
+from expensetracker.models import User, TransactionType
 
 
 def equalTo(password):
@@ -99,10 +99,12 @@ class CreateBudgetForm(FlaskForm):
     submit = SubmitField('Create Budget')
 
 
-class ExpenseForm(FlaskForm):
+class TransactionForm(FlaskForm):
     budget = SelectField('Budget', choices=[], validators=[DataRequired()])
     description = StringField('Description')
     category = SelectField('Category', choices=[], validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()], format='%d.%m.%Y')
-    amount = FloatField('Amount', validators=[DataRequired()])
+    amount = StringField('Amount', validators=[DataRequired(), Regexp('^[0-9]+(\.[0-9]([0-9])?)?$', message='Format must be currency value e.g. 2, 3.56, 1234.7')])
     submit = SubmitField('Add Expense')
+
+
