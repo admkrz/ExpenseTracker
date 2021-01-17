@@ -90,7 +90,7 @@ class RenameForm(FlaskForm):
 
 
 class DeleteForm(FlaskForm):
-    item_to_delete = StringField('Old Name', validators=[DataRequired()])
+    item_to_delete = StringField('Id', validators=[DataRequired()])
     submit = SubmitField('Delete Category')
 
 
@@ -106,5 +106,4 @@ class TransactionForm(FlaskForm):
     date = DateField('Date', validators=[DataRequired()], format='%d.%m.%Y')
     amount = StringField('Amount', validators=[DataRequired(), Regexp('^[0-9]+(\.[0-9]([0-9])?)?$', message='Format must be currency value e.g. 2, 3.56, 1234.7')])
     submit = SubmitField('Add Expense')
-
 

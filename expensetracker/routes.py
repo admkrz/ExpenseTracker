@@ -6,6 +6,10 @@ from expensetracker.forms import RegistrationForm, LoginForm, UpdateAccountForm,
 from expensetracker import app, db, bcrypt
 from expensetracker.models import User, Category, Budget, Transaction, TransactionType
 
+new_user_expense_categories = ["Groceries", "Housing", "Shopping", "Entertainment", "Travel", "Health", "Other"]
+new_user_income_categories = ["Salary", "Bonus"]
+new_user_budgets = ["Card Budget", "Cash Budget"]
+
 
 @app.route('/')
 def index():
@@ -43,9 +47,26 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+
         user = User(username=form.username.data, email=form.email.data, password=hashed_passwd, currency='USD')
         db.session.add(user)
         db.session.commit()
+
+        for category_name in new_user_expense_categories:
+            expense_category = Category(name=category_name, type=TransactionType.expense, user=user, hidden=False)
+            db.session.add(expense_category)
+            db.session.commit()
+
+        for category_name in new_user_income_categories:
+            income_category = Category(name=category_name, type=TransactionType.income, user=user, hidden=False)
+            db.session.add(income_category)
+            db.session.commit()
+
+        for budget_name in new_user_budgets:
+            budget = Budget(name=budget_name, user=user)
+            db.session.add(budget)
+            db.session.commit()
+
         flash('Your account has been created!', 'success')
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
@@ -137,12 +158,16 @@ def add_incomes():
     return add_transaction('Income')
 
 
-def add_transaction(type):
-    user = User.query.filter_by(username=current_user.username).first()
-    currency = user.currency
+def sum_balance(budget):
+    incomes_sum = sum(income.amount for income in budget.transactions.filter_by(type='income').all())
+    expenses_sum = sum(expense.amount for expense in budget.transactions.filter_by(type='expense').all())
+    budget.balance = incomes_sum - expenses_sum
+    db.session.commit()
 
+
+def get_transaction_form(user):
     categories = []
-    for category in user.categories.filter_by(type=type.lower()).all():
+    for category in user.categories.filter_by(type=type.lower(), hidden=False).all():
         categories.append((category.id, category.name))
 
     budgets = []
@@ -153,28 +178,51 @@ def add_transaction(type):
     form.budget.choices = budgets
     form.category.choices = categories
 
+    return form
+
+
+def add_transaction(type):
+    user = User.query.filter_by(username=current_user.username).first()
+    currency = user.currency
+
+    form = get_transaction_form(user)
+
     if form.validate_on_submit():
-        transaction = Transaction(budget_id=int(form.budget.data), description=form.description.data, date=form.date.data,
-                                  amount=float(form.amount.data), category_id=int(form.category.data), type=type.lower())
+        transaction = Transaction(budget_id=int(form.budget.data), description=form.description.data,
+                                  date=form.date.data,
+                                  amount=float(form.amount.data), category_id=int(form.category.data),
+                                  type=type.lower())
         db.session.add(transaction)
+        db.session.commit()
+        sum_balance(transaction.budget)
         flash(f'{type} created!', 'success')
         return redirect(url_for(f'add_{type.lower()}s'))
 
     return render_template('addtransaction.html', title=f'Add {type}', type=type, form=form, currency=currency)
 
 
-@app.route('/expenses/manage')
+@app.route('/expenses/history')
 @login_required
-def manage_expenses():
+def expenses_history():
+    return transactions_history('Expense')
+
+
+@app.route('/incomes/history')
+@login_required
+def incomes_history():
+    return transactions_history('Income')
+
+
+def transactions_history(type):
     user = User.query.filter_by(username=current_user.username).first()
-    expenses = user.budgets.filter_by().first().expenses.filter_by().all()
-    return render_template('manageexpenses.html', title='Manage Expenses', expenses=expenses)
+    currency = user.currency
 
+    edit_form = get_transaction_form(user)
+    delete_form = DeleteForm()
 
-@app.route('/incomes/manage')
-@login_required
-def manage_incomes():
-    return render_template('manageincomes.html', title='Manage Incomes')
+    budgets = user.budgets.filter_by().all()
+    return render_template('transactionshistory.html', title=f'Manage {type}s', type=type, budgets=budgets,
+                           edit_form=edit_form, delete_form=delete_form, currency=currency)
 
 
 @app.route('/budgets', methods=['GET', 'POST'])
@@ -210,7 +258,12 @@ def budgets():
         return redirect(url_for('budgets'))
 
     if delete_form.validate_on_submit():
-        budget = user_budgets.filter_by(name=delete_form.item_to_delete.data)
+        budget = user_budgets.filter_by(id=int(delete_form.item_to_delete.data))
+
+        for transaction in budget.first().transactions.filter_by().all():
+            db.session.delete(transaction)
+            db.session.commit()
+
         budget.delete()
         db.session.commit()
         flash(f"Budget '{delete_form.item_to_delete.data}' deleted!", 'danger')
@@ -269,7 +322,9 @@ def manage_categories(category_type, type_name):
         if new_category and not new_category.hidden:
             flash('Category with this name already exists!', 'danger')
         elif new_category and new_category.hidden:
-            # SWITCH ALL INSTANCES TO NEW_CATEGORY
+            for transaction in Transaction.query.filter_by(category_id=category.id).all():
+                transaction.category_id = new_category.id
+                db.session.commit()
             new_category.hidden = False
             user_categories.filter_by(name=rename_form.old_name.data, type=category_type,
                                       hidden=False).delete()
@@ -281,8 +336,7 @@ def manage_categories(category_type, type_name):
         return redirect(url_for(f'{type_name.lower()}_categories'))
 
     if delete_form.validate_on_submit():
-        category = user_categories.filter_by(name=delete_form.item_to_delete.data, type=category_type,
-                                             hidden=False).first()
+        category = user_categories.filter_by(id=int(delete_form.item_to_delete.data)).first()
         category.hidden = True
         db.session.commit()
         flash(f"{type_name} category '{delete_form.item_to_delete.data}' deleted!", 'danger')

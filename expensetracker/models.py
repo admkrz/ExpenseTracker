@@ -45,7 +45,7 @@ class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     budget_id = db.Column(db.Integer, db.ForeignKey('budget.id'), nullable=False)
     description = db.Column(db.String(500), nullable=False)
-    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow().strftime('%Y-%m-%d'))
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow().strftime('%d-%m-%Y'))
     amount = db.Column(db.Float, nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     type = db.Column(db.Enum(TransactionType), nullable=False)
@@ -64,26 +64,6 @@ class Category(db.Model):
 
     def __repr__(self):
         return f"{self.name}"
-
-
-def sum_balance(budget):
-    incomes = sum(income.amount for income in budget.transactions.filter_by(type='income').all())
-    expenses = sum(expense.amount for expense in budget.transactions.filter_by(type='expense').all())
-    return incomes - expenses
-
-
-@event.listens_for(Transaction, 'after_insert')
-def on_create_listener(mapper, connection, target):
-    budget = Budget.query.filter_by(id=target.budget_id).first()
-    budget.balance = sum_balance(budget)
-    db.session.commit()
-
-
-@event.listens_for(Transaction, 'after_update')
-def on_update_listener(mapper, connection, target):
-    budget = Budget.query.filter_by(id=target.budget_id).first()
-    budget.balance = sum_balance(budget)
-    db.session.commit()
 
 
 @event.listens_for(Budget, 'before_insert')

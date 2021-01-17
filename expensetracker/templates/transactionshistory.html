@@ -1,0 +1,107 @@
+{% extends "layout.html" %}
+
+{% block styles %}
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.23/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.23/js/dataTables.bootstrap5.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <h1>{{ type }} History</h1>
+    <br>
+    <br>
+    {% if budgets %}
+        <h3 style="text-align: left">Choose Budget</h3>
+        <ul class="nav nav-tabs">
+            {% for budget in budgets %}
+                <li class="nav-item">
+                    {% if loop.index == 1 %}
+                        <a class="nav-link active" data-toggle="tab" href="#{{ budget.name }}">{{ budget.name }}</a>
+                    {% else %}
+                        <a class="nav-link" data-toggle="tab" href="#{{ budget.name }}">{{ budget.name }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+        <div id="myTabContent" class="tab-content">
+        {% for budget in budgets %}
+            {% if loop.index == 1 %}
+                <div class="tab-pane fade show active" id="{{ budget.name }}">
+            {% else %}
+                <div class="tab-pane fade" id="{{ budget.name }}">
+            {% endif %}
+        <br>
+        {% if budget.transactions.filter_by(type=type.lower()).all() %}
+            <div>
+                <table id="example" class="table table-striped table-bordered" style="width:100%">
+                    <thead>
+                    <tr>
+                        <th>Nr</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for transaction in budget.transactions.filter_by(type=type.lower()).all() %}
+                        <tr>
+                            <th>{{ loop.index }}</th>
+                            <th>{{ transaction.description }}</th>
+                            <th>{{ transaction.category }}</th>
+                            <th>{{ transaction.date }}</th>
+                            <th>{{ transaction.amount }}</th>
+                            <th>
+                                <a href="#EditModal"><i class="fas fa-edit"></i></a>
+                                <a href="#DeleteModal"><i class="fas fa-trash"></i></i></a>
+                            </th>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <th>Nr</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th></th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        {% else %}
+            <div class="card border-danger mb-3">
+                <div class="card-body">
+                    <h4 class="card-title">You don't have any {{ type }}s in this budget!</h4>
+                    <p class="card-text">Add some {{ type }}s in this budget to view history and edit {{ type }}s</p>
+                    <a class="btn btn-outline-info" href={{ url_for('add_expenses') }} role="button">Add expense</a>
+                </div>
+            </div>
+        {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <div class="card border-danger mb-3">
+            <div class="card-body">
+                <h4 class="card-title">You don't have any budgets!</h4>
+                <p class="card-text">Create a budget and add some {{ type }}s in this budget to view history and
+                    edit {{ type }}s</p>
+                <a class="btn btn-outline-info" href={{ url_for('budgets') }} role="button">Budgets</a>
+            </div>
+        </div>
+    {% endif %}
+
+
+
+
+    <script src="/static/js/transactionhistory.js"></script>
+
+{% endblock %}

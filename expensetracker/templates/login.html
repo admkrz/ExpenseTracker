@@ -44,14 +44,9 @@
             <div class="form-group mt-2">
                 {{ form.submit(class="btn btn-outline-info") }}
             </div>
-
-            <small class="text-muted mt-2">
-                <a href="/login">Forgot your password?</a><br/>
-            </small>
-
             <small class="text-muted mt-2">
                 Need an account?
-                <a class="ml-2" href="/register">Sign up</a>
+                <a class="ml-2" href={{ url_for('register') }}>Sign up</a>
             </small>
         </form>
     </div>
