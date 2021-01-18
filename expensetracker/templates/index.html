@@ -2,6 +2,7 @@
 
 {% block scripts %}
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 {% endblock %}
 
 {% block content %}
@@ -33,7 +34,7 @@
                 <div class="card text-white bg-success mb-3" style="max-width: 20rem;">
                     <div class="card-header"><strong>Monthly Expenses</strong></div>
                     <div class="card-body">
-                        <h4 class="card-title">{{ monthly_expenses }} {{ currency }}</h4>
+                        <h4 class="card-title">{{ "{:.2f}".format(last_month_expenses) }} {{ currency }}</h4>
                     </div>
                 </div>
             </div>
@@ -41,7 +42,7 @@
                 <div class="card text-white bg-danger mb-3" style="max-width: 20rem;">
                     <div class="card-header"><strong>Monthly Incomes</strong></div>
                     <div class="card-body">
-                        <h4 class="card-title">{{ monthly_incomes }} {{ currency }}</h4>
+                        <h4 class="card-title">{{ "{:.2f}".format(last_month_incomes) }} {{ currency }}</h4>
                     </div>
                 </div>
             </div>
@@ -49,7 +50,7 @@
                 <div class="card text-white bg-primary mb-3" style="max-width: 20rem;">
                     <div class="card-header"><strong>Weekly Expenses</strong></div>
                     <div class="card-body">
-                        <h4 class="card-title">{{ weekly_expenses }} {{ currency }}</h4>
+                        <h4 class="card-title">{{ "{:.2f}".format(last_week_expenses) }} {{ currency }}</h4>
                     </div>
                 </div>
             </div>
@@ -57,7 +58,7 @@
                 <div class="card text-white bg-info mb-3" style="max-width: 20rem;">
                     <div class="card-header"><strong>Weekly Incomes</strong></div>
                     <div class="card-body">
-                        <h4 class="card-title">{{ weekly_incomes }} {{ currency }}</h4>
+                        <h4 class="card-title">{{ "{:.2f}".format(last_week_incomes) }} {{ currency }}</h4>
                     </div>
                 </div>
             </div>
@@ -86,12 +87,12 @@
             {% endif %}
         <div class="card-header"><strong>{{ budget[0].name }}</strong></div>
         <div class="card-body">
-            <h4 class="card-title">Balance: {{ budget[2]-budget[1] }} {{ currency }}</h4>
+            <h4 class="card-title">Balance: {{ "{:.2f}".format(budget[2]-budget[1]) }} {{ currency }}</h4>
 
             <ul style="text-align:left">
-                <li><strong>Expenses</strong>: {{ budget[1] }} {{ currency }}
+                <li><strong>Expenses</strong>: {{ "{:.2f}".format(budget[1]) }} {{ currency }}
                 </li>
-                <li><strong>Incomes</strong>: {{ budget[2] }} {{ currency }}
+                <li><strong>Incomes</strong>: {{ "{:.2f}".format(budget[2]) }} {{ currency }}
                 </li>
             </ul>
         </div>
@@ -250,8 +251,26 @@
                 <h2 style="text-align:left">Day by day Transactions</h2>
             </div>
         </div>
-        <p class="small" style="text-align:left"><a href={{ url_for('report_daily') }}>(view full daily report)</a></p>
-
+        <p class="small" style="text-align:left"><a href={{ url_for('report_daily') }}>(view full daily report)</a>
+        </p>
+        <div class="row">
+            <div class="col">
+                <div class="card border-secondary">
+                    <div class="card-header"><strong>Last month's Expenses</strong></div>
+                    <div class="card-body-dash">
+                        <canvas id="dailyExpenseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card border-secondary">
+                    <div class="card-header"><strong>Last month's Incomes</strong></div>
+                    <div class="card-body-dash">
+                        <canvas id="dailyIncomeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <br>
         <div class="row">
@@ -259,8 +278,28 @@
                 <h2 style="text-align:left">Month by month Transactions</h2>
             </div>
         </div>
-        <p class="small" style="text-align:left"><a href={{ url_for('report_monthly') }}>(view full monthly report)</a>
+        <p class="small" style="text-align:left"><a href={{ url_for('report_monthly') }}>(view full monthly
+            report)</a>
         </p>
+        <div class="row">
+            <div class="col">
+                <div class="card border-secondary">
+                    <div class="card-header"><strong>Last year's Expenses</strong></div>
+                    <div class="card-body-dash">
+                        <canvas id="monthlyExpenseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card border-secondary">
+                    <div class="card-header"><strong>Last year's Incomes</strong></div>
+                    <div class="card-body-dash">
+                        <canvas id="monthlyIncomeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         <br>
         <div class="row">
@@ -272,30 +311,173 @@
             report)</a></p>
 
         <div class="row">
-            {% for type in types %}
-                <div class="col">
-                    <div class="card border-secondary mb-3" style="max-width: 30rem;">
-                        <div class="card-header"><strong>{{ type }} Categories</strong></div>
+
+            <div class="col">
+                <div class="card border-secondary" style="max-width: 33rem;">
+                    <div class="card-header"><strong>Expense Categories</strong></div>
+                    {% if expenses %}
                         <div class="card-body-dash">
-                            <div id="donutchart{{ type }}" style="width: 28rem; height: 28rem; padding: 0px"></div>
+                            <div id="donutchartExpense" style="width: 30rem; height: 30rem; padding: 0px"></div>
                         </div>
-                    </div>
+                    {% else %}
+                        <div class="card border-danger">
+                            <div class="card-body">
+                                <h4 class="card-title">You don't have any expenses!</h4>
+                                <p class="card-text">Add expenses to your budgets to display information in
+                                    this section!</p>
+                                <a class="btn btn-outline-info"
+                                   href={{ url_for('add_expenses') }} role="button">Expenses</a>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
-            {% endfor %}
+            </div>
+
+            <div class="col">
+                <div class="card border-secondary" style="max-width: 33rem;">
+                    <div class="card-header"><strong>Income Categories</strong></div>
+                    {% if incomes %}
+                        <div class="card-body-dash">
+                            <div id="donutchartIncome" style="width: 30rem; height: 30rem; padding: 0px"></div>
+                        </div>
+                    {% else %}
+                        <div class="card border-danger">
+                            <div class="card-body">
+                                <h4 class="card-title">You don't have any incomes!</h4>
+                                <p class="card-text">Add incomes to your budgets to display information in
+                                    this section!</p>
+                                <a class="btn btn-outline-info"
+                                   href={{ url_for('add_incomes') }} role="button">Incomes</a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
         <br>
         <div class="row">
             <div class="col-12">
-                <h2 style="text-align:left">Day by day Budgets balances</h2>
+                <h2 style="text-align:left">Day by day total Budgets balance</h2>
             </div>
         </div>
-        <p class="small" style="text-align:left"><a href={{ url_for('report_budgets') }}>(view full budgets report)</a>
+        <p class="small" style="text-align:left"><a href={{ url_for('report_budgets') }}>(view full budgets
+            report)</a>
         </p>
+        <div class="row">
+            <div class="col">
+                {% if budgets_days_data %}
+                    <div class="card border-secondary">
+                        <div class="card-header"><strong>Total Budgets balance</strong></div>
+                        <div class="card-body-dash">
+                            <canvas id="budgetsChart"></canvas>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="card border-danger">
+                        <div class="card-body">
+                            <h4 class="card-title">You don't have any transactions!</h4>
+                            <p class="card-text">Add transactions to your budgets to display information in
+                                this section!</p>
+                            <a class="btn btn-outline-info"
+                               href={{ url_for('add_expenses') }} role="button">Expenses</a>
+                            <a class="btn btn-outline-info" href={{ url_for('add_incomes') }} role="button">Incomes</a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     {% endif %}
 
-
 <script>
+    var ctxIncome = document.getElementById('dailyIncomeChart').getContext('2d');
+    var chartIncome = new Chart(ctxIncome, {
+        // The type of chart we want to create
+        type: 'bar',
+
+        // The data for our dataset
+        data: {
+            labels: {{ daily_labels|safe }},
+            datasets: [{
+                label: 'Daily Incomes',
+                fill: false,
+                lineTension: 0.1,
+                backgroundColor: 'rgba(0, 102, 0, 1)',
+                borderColor: 'rgba(0, 51, 0, 1)',
+                data: {{ daily_incomes|safe }}
+            }]
+        },
+
+        // Configuration options go here
+        options: {}
+    });
+
+    var ctxExpense = document.getElementById('dailyExpenseChart').getContext('2d');
+    var chartExpense = new Chart(ctxExpense, {
+        // The type of chart we want to create
+        type: 'bar',
+
+        // The data for our dataset
+        data: {
+            labels: {{ daily_labels|safe }},
+            datasets: [{
+                label: 'Daily Expenses',
+                fill: false,
+                lineTension: 0.1,
+                backgroundColor: 'rgba(255, 128, 0, 1)',
+                borderColor: 'rgba(204, 102, 0, 1)',
+                data: {{ daily_expenses|safe }}
+            }]
+        },
+
+        // Configuration options go here
+        options: {}
+    });
+
+    var ctxMonthlyIncome = document.getElementById('monthlyIncomeChart').getContext('2d');
+    var chartMonthlyIncome = new Chart(ctxMonthlyIncome, {
+        // The type of chart we want to create
+        type: 'bar',
+
+        // The data for our dataset
+        data: {
+            labels: {{ monthly_labels|safe }},
+            datasets: [{
+                label: 'Monthly Incomes',
+                fill: false,
+                lineTension: 0.1,
+                backgroundColor: 'rgba(0, 102, 0, 1)',
+                borderColor: 'rgba(0, 51, 0, 1)',
+                data: {{ monthly_incomes|safe }}
+            }]
+        },
+
+        // Configuration options go here
+        options: {}
+    });
+
+    var ctxMonthlyExpense = document.getElementById('monthlyExpenseChart').getContext('2d');
+    var chartMonthlyExpense = new Chart(ctxMonthlyExpense, {
+        // The type of chart we want to create
+        type: 'bar',
+
+        // The data for our dataset
+        data: {
+            labels: {{ monthly_labels|safe }},
+            datasets: [{
+                label: 'Monthly Expenses',
+                fill: false,
+                lineTension: 0.1,
+                backgroundColor: 'rgba(255, 128, 0, 1)',
+                borderColor: 'rgba(204, 102, 0, 1)',
+                data: {{ monthly_expenses|safe }}
+            }]
+        },
+
+        // Configuration options go here
+        options: {}
+    });
+
     $(document).ready(function () {
 
         google.charts.load("current", {packages: ["corechart"]});
@@ -320,6 +502,30 @@
             incomeChart.draw(incomeData, options);
         }
     });
+
+    if (document.getElementById('budgetsChart') != null) {
+        var ctx = document.getElementById('budgetsChart').getContext('2d');
+        var chart = new Chart(ctx, {
+            // The type of chart we want to create
+            type: 'line',
+
+            // The data for our dataset
+            data: {
+                labels: {{ budgets_days_labels|safe }},
+                datasets: [{
+                    label: 'Budgets Balance',
+                    fill: false,
+                    lineTension: 0.1,
+                    backgroundColor: 'rgba(236, 43, 43, 1)',
+                    borderColor: 'rgba(63, 191, 80, 1)',
+                    data: {{ budgets_days_data|safe }}
+                }]
+            },
+
+            // Configuration options go here
+            options: {}
+        });
+    }
 </script>
 
 {% endblock %}

@@ -1,6 +1,7 @@
 import operator
-from datetime import date
+from datetime import date, timedelta
 
+from dateutil import relativedelta
 from flask import flash, render_template, redirect, url_for, request
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -14,18 +15,107 @@ new_user_income_categories = ["Salary", "Bonus"]
 new_user_budgets = ["Card Budget", "Cash Budget"]
 
 
-def sum_monthly(transactions):
+def sum_month(transactions):
     today = date.today()
     monthly_transactions = [transaction for transaction in transactions if
                             (today.year - transaction.date.year) * 12 + (today.month - transaction.date.month) < 1]
     return sum([transaction.amount for transaction in monthly_transactions])
 
 
-def sum_weekly(transactions):
+def sum_week(transactions):
     today = date.today()
     weekly_transactions = [transaction for transaction in transactions if
                            (today - transaction.date).days < 7]
     return sum([transaction.amount for transaction in weekly_transactions])
+
+
+def balance_before_date(transactions, date):
+    expenses_before_date = sum([transaction.amount for transaction in transactions if
+                                transaction.type == TransactionType.expense and transaction.date <= date])
+    incomes_before_date = sum([transaction.amount for transaction in transactions if
+                               transaction.type == TransactionType.income and transaction.date <= date])
+    return float("{:.2f}".format(incomes_before_date - expenses_before_date))
+
+
+def budget_days_data(budgets):
+    transactions = []
+    for budget in budgets:
+        for transaction in budget.transactions.filter_by().all():
+            transactions.append(transaction)
+    sorted_transactions = sorted(transactions, key=operator.attrgetter('date'))
+    budget_days_labels = [t.date for t in sorted_transactions]
+    budget_days_data = []
+    for day in budget_days_labels:
+        budget_days_data.append(balance_before_date(sorted_transactions, day))
+    return [item.strftime('%Y-%m-%d') for item in budget_days_labels], budget_days_data
+
+
+def get_daily_labels():
+    today = date.today()
+    month_ago = date.today() - timedelta(days=30)
+    labels = []
+    while month_ago <= today:
+        labels.append(month_ago)
+        month_ago += timedelta(days=1)
+    return labels
+
+
+def get_daily_transactions(budgets):
+    daily_expenses = []
+    daily_incomes = []
+    transactions = []
+    for budget in budgets:
+        for transaction in budget.transactions.filter_by().all():
+            transactions.append(transaction)
+    sorted_transactions = sorted(transactions, key=operator.attrgetter('date'))
+    labels = get_daily_labels()
+    for day in labels:
+        daily_expense = 0
+        daily_income = 0
+        while len(sorted_transactions) > 0 and sorted_transactions[0].date == day:
+            if sorted_transactions[0].type == TransactionType.expense:
+                daily_expense += sorted_transactions[0].amount
+            else:
+                daily_income += sorted_transactions[0].amount
+            sorted_transactions.pop(0)
+        daily_expenses.append(daily_expense)
+        daily_incomes.append(daily_income)
+    return [item.strftime('%Y-%m-%d') for item in labels], daily_expenses, daily_incomes
+
+
+def get_monthly_labels():
+    today = date.today()
+    year_ago = date.today() - relativedelta.relativedelta(months=11)
+    labels = []
+    while year_ago <= today:
+        labels.append((year_ago.strftime('%B'), year_ago.strftime('%m-%Y')))
+        year_ago += relativedelta.relativedelta(months=1)
+    return labels
+
+
+def get_monthly_transactions(budgets):
+    monthly_expenses = []
+    monthly_incomes = []
+    transactions = []
+    for budget in budgets:
+        for transaction in budget.transactions.filter_by().all():
+            transactions.append(transaction)
+    sorted_transactions = sorted(transactions, key=operator.attrgetter('date'))
+    labels = get_monthly_labels()
+    month_labels = []
+    for month in labels:
+        month_labels.append(month[0])
+        monthly_expense = 0
+        monthly_income = 0
+        while len(sorted_transactions) > 0 and sorted_transactions[0].date.strftime('%m-%Y') == month[1]:
+            if sorted_transactions[0].type == TransactionType.expense:
+                monthly_expense += sorted_transactions[0].amount
+            else:
+                monthly_income += sorted_transactions[0].amount
+            sorted_transactions.pop(0)
+        monthly_expenses.append(monthly_expense)
+        monthly_incomes.append(monthly_income)
+    return month_labels, monthly_expenses, monthly_incomes
 
 
 @app.route('/')
@@ -35,11 +125,13 @@ def index():
         currency = user.currency
         budgets = []
         for budget in user.budgets.filter_by().all():
-            budgets.append((budget, sum_monthly(budget.transactions.filter_by(type=TransactionType.expense).all()),
-                            sum_monthly(budget.transactions.filter_by(type=TransactionType.income).all())))
+            budgets.append((budget, sum_month(budget.transactions.filter_by(type=TransactionType.expense).all()),
+                            sum_month(budget.transactions.filter_by(type=TransactionType.income).all())))
 
         expenses = []
         incomes = []
+
+        (budgets_days_labels, budgets_days_data) = budget_days_data(user.budgets.filter_by().all())
 
         for budget in user.budgets.filter_by().all():
             for transaction in budget.transactions.filter_by().all():
@@ -64,13 +156,24 @@ def index():
                 income_sum += category_sum
                 income_categories.append([category.name, category_sum])
 
+        (daily_labels, daily_expenses, daily_incomes) = get_daily_transactions(user.budgets.filter_by().all())
+
+        (monthly_labels, monthly_expenses, monthly_incomes) = get_monthly_transactions(user.budgets.filter_by().all())
+
+        print(monthly_expenses)
+        print(monthly_incomes)
+
         return render_template('index.html',
                                expenses=sorted(expenses, key=operator.attrgetter("date"), reverse=True)[0:5],
                                incomes=sorted(incomes, key=operator.attrgetter("date"), reverse=True)[0:5],
-                               budgets=budgets, monthly_expenses=sum_monthly(expenses),
-                               monthly_incomes=sum_monthly(incomes), weekly_expenses=sum_weekly(expenses),
-                               weekly_incomes=sum_weekly(incomes), currency=currency, types=types,
-                               income_categories=income_categories, expense_categories=expense_categories)
+                               budgets=budgets, last_month_expenses=sum_month(expenses),
+                               last_month_incomes=sum_month(incomes), last_week_expenses=sum_week(expenses),
+                               last_week_incomes=sum_week(incomes), currency=currency, types=types,
+                               income_categories=income_categories, expense_categories=expense_categories,
+                               budgets_days_labels=budgets_days_labels, budgets_days_data=budgets_days_data,
+                               daily_labels=daily_labels, daily_expenses=daily_expenses, daily_incomes=daily_incomes,
+                               monthly_labels=monthly_labels, monthly_expenses=monthly_expenses,
+                               monthly_incomes=monthly_incomes)
     else:
         return redirect('login')
 
@@ -208,8 +311,8 @@ def add_incomes():
 
 
 def sum_balance(budget):
-    incomes_sum = sum(income.amount for income in budget.transactions.filter_by(type='income').all())
-    expenses_sum = sum(expense.amount for expense in budget.transactions.filter_by(type='expense').all())
+    incomes_sum = sum([income.amount for income in budget.transactions.filter_by(type='income').all()])
+    expenses_sum = sum([expense.amount for expense in budget.transactions.filter_by(type='expense').all()])
     budget.balance = incomes_sum - expenses_sum
     db.session.commit()
 
@@ -309,7 +412,7 @@ def transactions_history(type):
 
     if delete_form.validate_on_submit():
         transaction_to_delete = Transaction.query.filter_by(id=int(delete_form.item_to_delete.data))
-        old_budget = transaction_to_delete.budget
+        old_budget = transaction_to_delete.first().budget
 
         transaction_to_delete.delete()
         db.session.commit()

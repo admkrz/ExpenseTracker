@@ -105,6 +105,6 @@ class TransactionForm(FlaskForm):
     description = StringField('Description')
     category = SelectField('Category', choices=[], validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()], format='%Y-%m-%d')
-    amount = StringField('Amount', validators=[DataRequired(), Regexp('^[0-9]+(\.[0-9]([0-9])?)?$', message='Format must be currency value e.g. 2, 3.56, 1234.7')])
-    submit = SubmitField('Add Expense')
-
+    amount = StringField('Amount', validators=[DataRequired(), Regexp('^[0-9]+(\.[0-9]([0-9])?)?$',
+                                                                      message='Format must be currency value e.g. 2, 3.56, 1234.7')])
+    submit = SubmitField('Add Transaction')
