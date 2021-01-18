@@ -94,16 +94,26 @@
         </div>
         </div>
 
-
         <!-- if last column in row -->
         {% if loop.index%4 == 0 and not loop.last %}
             </div>
             <div class="row mt-5">
         {% endif %}
 
-
         {% endfor %}
     </div>
+    {% if budgets|length == 0 %}
+        <div class="col">
+            <div class="card border-danger">
+                <div class="card-body">
+                    <h4 class="card-title">You don't have any budgets!</h4>
+                    <p class="card-text">Create a budget to display information in this section!</p>
+                    <a class="btn btn-outline-info" href={{ url_for('budgets') }} role="button">Budgets</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
 
     <br>
 
@@ -112,47 +122,61 @@
             <h2 style="text-align:left">Last Expenses</h2>
         </div>
     </div>
-    <p class="small" style="text-align:left"><a href={{ url_for('expenses_history') }}>(view all expense
-        history)</a>
-    </p>
-    <div>
-        <table id="example" class="table table-striped table-bordered" style="width:100%">
-            <thead>
-            <tr>
-                <th>Nr</th>
-                <th>Budget</th>
-                <th>Description</th>
-                <th>Category</th>
-                <th>Date</th>
-                <th>Amount</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% if expenses %}
-                {% for result in expenses %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ result.budget.__str__() }}</td>
-                        <td>{{ result.description }}</td>
-                        <td>{{ result.category.__str__() }}</td>
-                        <td>{{ result.date }}</td>
-                        <td>{{ result.amount }}</td>
-                    </tr>
-                {% endfor %}
-            {% endif %}
-            </tbody>
-            <tfoot>
-            <tr>
-                <th>Nr</th>
-                <th>Budget</th>
-                <th>Description</th>
-                <th>Category</th>
-                <th>Date</th>
-                <th>Amount</th>
-            </tr>
-            </tfoot>
-        </table>
-    </div>
+    {% if expenses|length != 0 %}
+        <p class="small" style="text-align:left"><a href={{ url_for('expenses_history') }}>(view full expense
+            history)</a>
+        </p>
+        <div>
+            <table id="example" class="table table-striped table-bordered" style="width:100%">
+                <thead>
+                <tr>
+                    <th>Nr</th>
+                    <th>Budget</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% if expenses %}
+                    {% for result in expenses %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ result.budget.__str__() }}</td>
+                            <td>{{ result.description }}</td>
+                            <td>{{ result.category.__str__() }}</td>
+                            <td>{{ result.date }}</td>
+                            <td>{{ result.amount }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th>Nr</th>
+                    <th>Budget</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+
+    {% else %}
+        <br>
+        <div class="col">
+            <div class="card border-danger">
+                <div class="card-body">
+                    <h4 class="card-title">You don't have any expenses!</h4>
+                    <p class="card-text">Add new expenses to display information in this section!</p>
+                    <a class="btn btn-outline-info" href={{ url_for('expenses') }} role="button">Expenses</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
     <br>
 
     <div class="row">
@@ -160,48 +184,103 @@
             <h2 style="text-align:left">Last Incomes</h2>
         </div>
     </div>
-    <p class="small" style="text-align:left"><a href={{ url_for('incomes_history') }}>(view all income
-        history)</a>
-    </p>
-    <div>
-        <table id="example" class="table table-striped table-bordered" style="width:100%">
-            <thead>
-            <tr>
-                <th>Nr</th>
-                <th>Budget</th>
-                <th>Description</th>
-                <th>Category</th>
-                <th>Date</th>
-                <th>Amount</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% if incomes %}
-                {% for result in incomes %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ result.budget.__str__() }}</td>
-                        <td>{{ result.description }}</td>
-                        <td>{{ result.category.__str__() }}</td>
-                        <td>{{ result.date }}</td>
-                        <td>{{ result.amount }}</td>
-                    </tr>
-                {% endfor %}
-            {% endif %}
-            </tbody>
-            <tfoot>
-            <tr>
-                <th>Nr</th>
-                <th>Budget</th>
-                <th>Description</th>
-                <th>Category</th>
-                <th>Date</th>
-                <th>Amount</th>
-            </tr>
-            </tfoot>
-        </table>
-    </div>
-    </div>
+    {% if incomes|length != 0 %}
+        <p class="small" style="text-align:left"><a href={{ url_for('incomes_history') }}>(view full income
+            history)</a>
+        </p>
+        <div>
+            <table id="example" class="table table-striped table-bordered" style="width:100%">
+                <thead>
+                <tr>
+                    <th>Nr</th>
+                    <th>Budget</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% if incomes %}
+                    {% for result in incomes %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ result.budget.__str__() }}</td>
+                            <td>{{ result.description }}</td>
+                            <td>{{ result.category.__str__() }}</td>
+                            <td>{{ result.date }}</td>
+                            <td>{{ result.amount }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th>Nr</th>
+                    <th>Budget</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+        </div>
+    {% else %}
+        <br>
+        <div class="col">
+            <div class="card border-danger">
+                <div class="card-body">
+                    <h4 class="card-title">You don't have any incomes!</h4>
+                    <p class="card-text">Add new incomes to display information in this section!</p>
+                    <a class="btn btn-outline-info" href={{ url_for('incomes') }} role="button">Incomes</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+        <br>
+
+        <div class="row">
+            <div class="col-12">
+                <h2 style="text-align:left">Day by day Transactions</h2>
+            </div>
+        </div>
+        <p class="small" style="text-align:left"><a href={{ url_for('report_daily') }}>(view whole daily
+            report)</a>
+        </p>
+
+
+        <br>
+        <div class="row">
+            <div class="col-12">
+                <h2 style="text-align:left">Month by month Transactions</h2>
+            </div>
+        </div>
+        <p class="small" style="text-align:left"><a href={{ url_for('report_monthly') }}>(view whole monthly
+            report)</a>
+        </p>
+
+        <br>
+        <div class="row">
+            <div class="col-12">
+                <h2 style="text-align:left">Last month Categories summary</h2>
+            </div>
+        </div>
+        <p class="small" style="text-align:left"><a href={{ url_for('report_categories') }}>(view whole
+            categories
+            report)</a>
+        </p>
+
+        <br>
+        <div class="row">
+            <div class="col-12">
+                <h2 style="text-align:left">Day by day Budgets balances</h2>
+            </div>
+        </div>
+        <p class="small" style="text-align:left"><a href={{ url_for('report_budgets') }}>(view whole budgets
+            report)</a>
+        </p>
     {% endif %}
 
 {% endblock %}

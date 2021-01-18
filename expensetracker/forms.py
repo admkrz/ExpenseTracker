@@ -1,11 +1,11 @@
 from flask import flash
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField, DateField, FloatField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField, DateField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Regexp
 import ccy
 
-from expensetracker.models import User, TransactionType
+from expensetracker.models import User
 
 
 def equalTo(password):

@@ -1,5 +1,5 @@
 $.fn.dataTable.ext.search.push(
-    function( settings, data, dataIndex ) {
+    function (settings, data, dataIndex) {
         var filter_category = $('#filterCategory').val();
         var row_category = data[2]; // use data for the age column
 
@@ -7,14 +7,29 @@ $.fn.dataTable.ext.search.push(
             return true;
 
         return filter_category === row_category;
-
     }
 );
 
-$(document).ready(function () {
-    var table = $('#example').DataTable();
+$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+    var target = $(".nav-link.active")
+    var select = $('select.custom-select')
+    console.log(target)
+    console.log(target.data('transactions'))
+    console.log(target.data('transactions') == 0)
 
-    $('#filterCategory').on('change', function () {
+    if (target.data('transactions') == 0) {
+        $('#filterCategories').hide()
+    }
+    else
+        $('#filterCategories').show()
+
+    select.val("all")
+});
+
+$(document).ready(function () {
+    var table = $('table.table').DataTable();
+
+    $('select.custom-select').on('change', function () {
         table.draw();
     });
 

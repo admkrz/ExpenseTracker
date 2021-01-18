@@ -9,18 +9,18 @@
       <div class="col-sm-6">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Budget Overview</h5>
-            <p>View your budgets and budget balances in this report.</p>
-            <a href="/budgetsreport" class="btn btn-primary">View Report</a>
+            <h5 class="card-title">Daily Transactions</h5>
+            <p>View your day-over-day transactions.</p>
+            <a href="{{ url_for('report_daily') }}" class="btn btn-primary">View Report</a>
           </div>
         </div>
       </div>
       <div class="col-sm-6">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Monthly Spending</h5>
-            <p>View your month-over-month expenses.</p>
-            <a href="/monthlyreport" class="btn btn-primary">View Report</a>
+            <h5 class="card-title">Monthly Transactions</h5>
+            <p>View your month-over-month transactions.</p>
+            <a href="{{ url_for('report_monthly') }}" class="btn btn-primary">View Report</a>
           </div>
         </div>
       </div>
@@ -29,18 +29,18 @@
       <div class="col-sm-6">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Spending Categories</h5>
-            <p>View your monthly spending and incomes divided between categories.</p>
-            <a href="/spendingreport" class="btn btn-primary">View Report</a>
+            <h5 class="card-title">Las month Transaction Categories</h5>
+            <p>View your last month transactions divided by categories.</p>
+            <a href="{{ url_for('report_categories') }}" class="btn btn-primary">View Report</a>
           </div>
         </div>
       </div>
       <div class="col-sm-6">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Average finances</h5>
-            <p>View your average daily, monthly and yearly expenses and incomes.</p>
-            <a href="/payersreport" class="btn btn-primary">View Report</a>
+            <h5 class="card-title">Day by day budget balances</h5>
+            <p>View your budgets balances day by day.</p>
+            <a href="{{ url_for('report_budgets') }}" class="btn btn-primary">View Report</a>
           </div>
         </div>
       </div>

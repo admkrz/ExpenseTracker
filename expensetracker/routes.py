@@ -160,7 +160,8 @@ def account():
         currency_form.currency.data = current_user.currency
 
     return render_template('account.html', title='Account', account_form=account_form, password_form=password_form,
-                           currency_form=currency_form, user=user, expenses_count=expenses_count, incomes_count=incomes_count)
+                           currency_form=currency_form, user=user, expenses_count=expenses_count,
+                           incomes_count=incomes_count)
 
 
 @app.route('/expenses')
@@ -437,3 +438,27 @@ def manage_categories(category_type, type_name):
 @login_required
 def reports():
     return render_template('reports.html', title='Reports')
+
+
+@app.route('/reports/daily')
+@login_required
+def report_daily():
+    return render_template('reportdaily.html', title='Daily Report')
+
+
+@app.route('/reports/monthly')
+@login_required
+def report_monthly():
+    return render_template('reportmonthly.html', title='Monthly Report')
+
+
+@app.route('/reports/categories')
+@login_required
+def report_categories():
+    return render_template('reportcategories.html', title='Categories Report')
+
+
+@app.route('/reports/budgets')
+@login_required
+def report_budgets():
+    return render_template('reportbudgets.html', title='Budgets Report')

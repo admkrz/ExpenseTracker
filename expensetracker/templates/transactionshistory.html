@@ -24,9 +24,9 @@
             {% for budget in budgets %}
                 <li class="nav-item">
                     {% if loop.index == 1 %}
-                        <a class="nav-link active" data-toggle="tab" href="#{{ budget.id }}">{{ budget.name }}</a>
+                        <a class="nav-link active" data-toggle="tab" href="#{{ budget.id }}" data-transactions="{{ budget.transactions.filter_by(type=type.lower()).all()|length }}">{{ budget.name }}</a>
                     {% else %}
-                        <a class="nav-link" data-toggle="tab" href="#{{ budget.id }}">{{ budget.name }}</a>
+                        <a class="nav-link" data-toggle="tab" href="#{{ budget.id }}" data-transactions="{{ budget.transactions.filter_by(type=type.lower()).all()|length }}">{{ budget.name }}</a>
                     {% endif %}
                 </li>
             {% endfor %}
@@ -40,19 +40,8 @@
             {% endif %}
         <br>
         {% if budget.transactions.filter_by(type=type.lower()).all() %}
-
-            <h5 style="text-align: left">Filter history by category</h5>
-            <div class="form-group">
-                <select class="custom-select" id="filterCategory">
-                    <option selected="" value="all">Choose Category</option>
-                    {% for category in categories %}
-                        <option value="{{ category.name }}">{{ category.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
             <div>
-                <table id="example" class="table table-striped table-bordered" style="width:100%">
+                <table id="" class="table table-striped table-bordered" style="width:100%">
                     <thead>
                     <tr>
                         <th>Nr</th>
@@ -108,14 +97,19 @@
             </div>
         {% endif %}
         </div>
-            <script>
-                $(document).ready(function () {
-                    var budget_id=document.getElementById('#')
-                    $('#example').DataTable();
-                });
-            </script>
         {% endfor %}
-    </div>
+        <br>
+        <div id="filterCategories">
+            <h5 style="text-align: left">Filter history by category</h5>
+            <div class="form-group">
+                <select class="custom-select" id="filterCategory">
+                    <option selected="" value="all">Choose Category</option>
+                    {% for category in categories %}
+                        <option value="{{ category.name }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
     {% else %}
         <div class="card border-danger mb-3">
             <div class="card-body">
