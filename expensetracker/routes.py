@@ -1,3 +1,6 @@
+import operator
+from datetime import date
+
 from flask import flash, render_template, redirect, url_for, request
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -11,32 +14,46 @@ new_user_income_categories = ["Salary", "Bonus"]
 new_user_budgets = ["Card Budget", "Cash Budget"]
 
 
+def sum_monthly(transactions):
+    today = date.today()
+    monthly_transactions = [transaction for transaction in transactions if
+                            (today.year - transaction.date.year) * 12 + (today.month - transaction.date.month) < 1]
+    return sum([transaction.amount for transaction in monthly_transactions])
+
+
+def sum_weekly(transactions):
+    today = date.today()
+    weekly_transactions = [transaction for transaction in transactions if
+                           (today - transaction.date).days < 7]
+    return sum([transaction.amount for transaction in weekly_transactions])
+
+
 @app.route('/')
 def index():
     if current_user.is_authenticated:
         user = User.query.filter_by(username=current_user.username).first()
-
-        categories = []
-        for category in user.categories.filter_by(type=TransactionType.expense).all():
-            categories.append((category, category.name))
-
+        currency = user.currency
         budgets = []
         for budget in user.budgets.filter_by().all():
-            budgets.append((budget, budget.name))
+            budgets.append((budget, sum_monthly(budget.transactions.filter_by(type=TransactionType.expense).all()),
+                            sum_monthly(budget.transactions.filter_by(type=TransactionType.income).all())))
 
-        form = TransactionForm()
-        form.budget.choices = budgets
-        form.category.choices = categories
+        expenses = []
+        incomes = []
 
-        if user.budgets.filter_by().first() is not None:
-            expenses = user.budgets.filter_by().first().transactions.filter_by(type='expense').all()
-            incomes = user.budgets.filter_by().first().transactions.filter_by(type='income').all()
-        else:
-            expenses = None
-            incomes = None
+        for budget in user.budgets.filter_by().all():
+            for transaction in budget.transactions.filter_by().all():
+                if transaction.type == TransactionType.expense:
+                    expenses.append(transaction)
+                else:
+                    incomes.append(transaction)
 
-        return render_template('index.html', form=form, expenses=expenses, incomes=incomes,
-                               budgets=user.budgets.filter_by().all())
+        return render_template('index.html',
+                               expenses=sorted(expenses, key=operator.attrgetter("date"), reverse=True)[0:5],
+                               incomes=sorted(incomes, key=operator.attrgetter("date"), reverse=True)[0:5],
+                               budgets=budgets, monthly_expenses=sum_monthly(expenses),
+                               monthly_incomes=sum_monthly(incomes), weekly_expenses=sum_weekly(expenses),
+                               weekly_incomes=sum_weekly(incomes), currency=currency)
     else:
         return redirect('login')
 
@@ -150,13 +167,15 @@ def incomes():
 @app.route('/expenses/add', methods=['GET', 'POST'])
 @login_required
 def add_expenses():
-    return add_transaction('Expense')
+    value = request.args.get('value')
+    return add_transaction('Expense', value)
 
 
 @app.route('/incomes/add', methods=['GET', 'POST'])
 @login_required
 def add_incomes():
-    return add_transaction('Income')
+    value = request.args.get('value')
+    return add_transaction('Income', value)
 
 
 def sum_balance(budget):
@@ -174,7 +193,7 @@ def optimize_categories(type):
             db.session.commit()
 
 
-def add_transaction(type):
+def add_transaction(type, value):
     user = User.query.filter_by(username=current_user.username).first()
     currency = user.currency
 
@@ -199,7 +218,10 @@ def add_transaction(type):
         db.session.commit()
         sum_balance(transaction.budget)
         flash(f'{type} created!', 'success')
-        return redirect(url_for(f'add_{type.lower()}s'))
+        if value == "quick":
+            return redirect(url_for('index'))
+        else:
+            return redirect(url_for(f'add_{type.lower()}s'))
 
     return render_template('addtransaction.html', title=f'Add {type}', type=type, form=form, currency=currency)
 

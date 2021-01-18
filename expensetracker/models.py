@@ -38,7 +38,7 @@ class Budget(db.Model):
     transactions = db.relationship('Transaction', backref='budget', lazy='dynamic')
 
     def __repr__(self):
-        return f"Budget('{self.name}, {self.user})"
+        return f"{self.name}"
 
 
 class Transaction(db.Model):
