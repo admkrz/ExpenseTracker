@@ -45,7 +45,7 @@ class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     budget_id = db.Column(db.Integer, db.ForeignKey('budget.id'), nullable=False)
     description = db.Column(db.String(500), nullable=False)
-    date = db.Column(db.Date, nullable=False, default=datetime.utcnow().strftime('%d-%m-%Y'))
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow().strftime('%Y-%m-%d'))
     amount = db.Column(db.Float, nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     type = db.Column(db.Enum(TransactionType), nullable=False)

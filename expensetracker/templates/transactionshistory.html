@@ -1,17 +1,20 @@
 {% extends "layout.html" %}
 
-{% block styles %}
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/1.10.23/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+{% block scripts %}
+    <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
 {% endblock %}
 
-{% block scripts %}
-    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.23/js/dataTables.bootstrap5.min.js"></script>
+{% block styles %}
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.css"/>
+    <link href="https://cdn.datatables.net/1.10.23/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
 {% endblock %}
 
 {% block content %}
+
     <h1>{{ type }} History</h1>
     <br>
     <br>
@@ -21,22 +24,33 @@
             {% for budget in budgets %}
                 <li class="nav-item">
                     {% if loop.index == 1 %}
-                        <a class="nav-link active" data-toggle="tab" href="#{{ budget.name }}">{{ budget.name }}</a>
+                        <a class="nav-link active" data-toggle="tab" href="#{{ budget.id }}">{{ budget.name }}</a>
                     {% else %}
-                        <a class="nav-link" data-toggle="tab" href="#{{ budget.name }}">{{ budget.name }}</a>
+                        <a class="nav-link" data-toggle="tab" href="#{{ budget.id }}">{{ budget.name }}</a>
                     {% endif %}
                 </li>
             {% endfor %}
         </ul>
-        <div id="myTabContent" class="tab-content">
+        <div class="tab-content">
         {% for budget in budgets %}
             {% if loop.index == 1 %}
-                <div class="tab-pane fade show active" id="{{ budget.name }}">
+                <div class="tab-pane active" id="{{ budget.id }}">
             {% else %}
-                <div class="tab-pane fade" id="{{ budget.name }}">
+                <div class="tab-pane" id="{{ budget.id }}">
             {% endif %}
         <br>
         {% if budget.transactions.filter_by(type=type.lower()).all() %}
+
+            <h5 style="text-align: left">Filter history by category</h5>
+            <div class="form-group">
+                <select class="custom-select" id="filterCategory">
+                    <option selected="" value="all">Choose Category</option>
+                    {% for category in categories %}
+                        <option value="{{ category.name }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <div>
                 <table id="example" class="table table-striped table-bordered" style="width:100%">
                     <thead>
@@ -58,8 +72,16 @@
                             <th>{{ transaction.date }}</th>
                             <th>{{ transaction.amount }}</th>
                             <th>
-                                <a href="#EditModal"><i class="fas fa-edit"></i></a>
-                                <a href="#DeleteModal"><i class="fas fa-trash"></i></i></a>
+                                <a href="#" data-target="#editModal" data-toggle="modal"
+                                   data-budget="{{ transaction.budget.id }}"
+                                   data-description="{{ transaction.description }}"
+                                   data-category="{{ transaction.category.id }}" data-date="{{ transaction.date }}"
+                                   data-amount="{{ transaction.amount }}" data-id="{{ transaction.id }}"><i
+                                        class="fas fa-edit fa-lg"
+                                        style="margin-right:2em"></i></a>
+
+                                <a href="#" data-target="#deleteModal" data-toggle="modal"
+                                   data-id="{{ transaction.id }}"><i class="fas fa-trash fa-lg"></i></a>
                             </th>
                         </tr>
                     {% endfor %}
@@ -86,6 +108,12 @@
             </div>
         {% endif %}
         </div>
+            <script>
+                $(document).ready(function () {
+                    var budget_id=document.getElementById('#')
+                    $('#example').DataTable();
+                });
+            </script>
         {% endfor %}
     </div>
     {% else %}
@@ -100,8 +128,154 @@
     {% endif %}
 
 
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit your {{ type }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="">
+                    {{ edit_form.hidden_tag() }}
+                    <fieldset class="form_group">
+                        <legend class="border-bottom mb-4">Change parameters of the {{ type }}!</legend>
+                        <div class="form-group">
+                            {{ edit_form.budget.label(class="form-control-label") }}
 
+                            {% if edit_form.budget.errors %}
+                                {{ edit_form.budget(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.budget.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ edit_form.budget(class="form-control form-control-lg") }}
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ edit_form.description.label(class="form-control-label") }}
+                            {% if edit_form.description.errors %}
+                                {{ edit_form.description(class="form-control form-control-lg is-invalid", autocomplete="off") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.description.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ edit_form.description(class="form-control form-control-lg", autocomplete="off") }}
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ edit_form.category.label(class="form-control-label") }}
+                            {% if edit_form.category.errors %}
+                                {{ edit_form.category(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.category.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ edit_form.category(class="form-control form-control-lg") }}
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
 
-    <script src="/static/js/transactionhistory.js"></script>
+                            {{ edit_form.date.label(class="form-control-label") }}
+                            <div class="input-group mb-3">
+                                {% if edit_form.date.errors %}
+                                    {{ edit_form.date(class="form-control form-control-lg", autocomplete="off") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.date.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ edit_form.date(class="form-control form-control-lg", autocomplete="off") }}
+                                {% endif %}
+                                <div class="input-group-append">
+                                    <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            {{ edit_form.amount.label(class="form-control-label") }}
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">{{ currency }}</span>
+                                </div>
+                                {% if edit_form.amount.errors %}
+                                    {{ edit_form.amount(class="form-control form-control-lg is-invalid", autocomplete="off") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.amount.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ edit_form.amount(class="form-control form-control-lg", autocomplete="off") }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            {{ edit_form.id(class="form-control form-control-lg") }}
+                        </div>
+                    </fieldset>
+                    <div class="form-group">
+                        {{ edit_form.submit(class="btn btn-outline-info", id="editTransaction") }}
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="saveChanges">
+                    Save Changes
+                </button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby=deleteModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Delete this {{ type }}</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="">
+                    {{ delete_form.hidden_tag() }}
+                    <fieldset class="form_group">
+                        <div class="form-group">
+                            {{ delete_form.item_to_delete(class="form-control form-control-lg") }}
+                        </div>
+                    </fieldset>
+                    <div class="form-group">
+                        {{ delete_form.submit(class="btn btn-outline-info", id="deleteFormButton") }}
+                    </div>
+                </form>
+                <p class="text-danger"><strong>Are you sure you want to delete this {{ type }}?</strong></p>
+                <ul class="text-danger" style="text-align:center">
+                    <li class="text-danger">This {{ type }} will disappear from dashboard, reports and {{ type }}s
+                        history!
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary" id="deleteTransaction">Delete Transaction</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/transactionshistory.js"></script>
 
 {% endblock %}

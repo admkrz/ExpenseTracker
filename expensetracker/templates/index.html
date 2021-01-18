@@ -231,7 +231,7 @@
                             <td>{{ loop.index }}</td>
                             <td>{{ result.description }}</td>
                             <td>{{ result.category.__str__() }}</td>
-                            <td>{{ result.date.date() }}</td>
+                            <td>{{ result.date }}</td>
                             <td>{{ result.amount }}</td>
                         </tr>
                     {% endfor %}
@@ -277,7 +277,7 @@
                             <td>{{ loop.index }}</td>
                             <td>{{ result.description }}</td>
                             <td>{{ result.category.__str__() }}</td>
-                            <td>{{ result.date.date() }}</td>
+                            <td>{{ result.date }}</td>
                             <td>{{ result.amount }}</td>
                         </tr>
                     {% endfor %}
@@ -294,6 +294,29 @@
                 </tfoot>
             </table>
         </div>
+
+        <ul class="nav nav-tabs">
+            {% for budget in budgets %}
+                <li class="nav-item">
+                    {% if loop.index == 1 %}
+                        <a class="nav-link active" data-toggle="tab" href="#{{ budget.id }}">{{ budget.name }}</a>
+                    {% else %}
+                        <a class="nav-link" data-toggle="tab" href="#{{ budget.id }}">{{ budget.name }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+        <div class="tab-content">
+        {% for budget in budgets %}
+            {% if loop.index == 1 %}
+                <div class="tab-pane active" id="{{ budget.id }}">
+            {% else %}
+                <div class="tab-pane" id="{{ budget.id }}">
+            {% endif %}
+        {{ budget.name }}
+        </div>
+        {% endfor %}
+    </div>
     {% else %}
 
     {% endif %}
