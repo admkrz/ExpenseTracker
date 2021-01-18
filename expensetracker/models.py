@@ -1,5 +1,5 @@
 import enum
-from datetime import datetime
+from datetime import datetime, date
 
 from flask_login import UserMixin
 from sqlalchemy import event
@@ -22,6 +22,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
+    created_date = db.Column(db.Date, nullable=False, default=date.today())
     currency = db.Column(db.String(3))
     budgets = db.relationship('Budget', backref='user', lazy='dynamic')
     categories = db.relationship('Category', backref='user', lazy='dynamic')
@@ -45,7 +46,7 @@ class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     budget_id = db.Column(db.Integer, db.ForeignKey('budget.id'), nullable=False)
     description = db.Column(db.String(500), nullable=False)
-    date = db.Column(db.Date, nullable=False, default=datetime.utcnow().strftime('%Y-%m-%d'))
+    date = db.Column(db.Date, nullable=False, default=date.today())
     amount = db.Column(db.Float, nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     type = db.Column(db.Enum(TransactionType), nullable=False)

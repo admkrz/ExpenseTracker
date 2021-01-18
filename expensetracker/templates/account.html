@@ -149,11 +149,11 @@
                 <div class="card-body">
                     <h5 class="card-title">Statistics</h5>
                     <ul style="text-align:left">
-                        <li><strong>User account created</strong>: DATA</li>
-                        <li><strong>Expenses added</strong>: number</li>
-                        <li><strong>Incomes added</strong>: number</li>
-                        <li><strong>Budgets created</strong>: number</li>
-                        <li><strong>Categories created</strong>: number</li>
+                        <li><strong>Member since</strong>: {{ user.created_date }}</li>
+                        <li><strong>Expenses added</strong>: {{ expenses_count }}</li>
+                        <li><strong>Incomes added</strong>: {{ incomes_count }}</li>
+                        <li><strong>Budgets created</strong>: {{ user.budgets.filter_by().all()|length }}</li>
+                        <li><strong>Categories created</strong>: {{ user.categories.filter_by().all()|length }}</li>
                     </ul>
                 </div>
             </div>

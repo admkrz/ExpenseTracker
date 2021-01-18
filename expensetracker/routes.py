@@ -116,6 +116,17 @@ def logout():
 @app.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
+    user = User.query.filter_by(username=current_user.username).first()
+
+    expenses_count = 0
+    incomes_count = 0
+    for budget in user.budgets.filter_by().all():
+        for transaction in budget.transactions.filter_by().all():
+            if transaction.type == TransactionType.expense:
+                expenses_count += 1
+            else:
+                incomes_count += 1
+
     account_form = UpdateAccountForm()
     password_form = ChangePasswordForm()
     currency_form = ChangeCurrencyForm()
@@ -149,7 +160,7 @@ def account():
         currency_form.currency.data = current_user.currency
 
     return render_template('account.html', title='Account', account_form=account_form, password_form=password_form,
-                           currency_form=currency_form)
+                           currency_form=currency_form, user=user, expenses_count=expenses_count, incomes_count=incomes_count)
 
 
 @app.route('/expenses')
