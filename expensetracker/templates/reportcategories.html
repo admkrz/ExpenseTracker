@@ -1,7 +1,65 @@
 {% extends "layout.html" %}
 
+{% block styles %}
+    <!--Data Tables Plugins (export buttons)-->
+    <link href="https://cdn.datatables.net/buttons/1.6.1/css/buttons.dataTables.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <!--Data Tables Plugins (export buttons)-->
+    <script src="https://cdn.datatables.net/buttons/1.6.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.flash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.html5.min.js"></script>
+{% endblock %}
+
 {% block content %}
 
- <h1>Monthly Categories Report</h1>
+    <h1>Categories Report</h1>
+    <br>
+    {% for type in types %}
+        <div class="jumbotron" style="padding:2rem 1rem">
+            <div class="row">
+                <div class="col">
+                    <div class="card border-secondary mb-3" style="max-width: 30rem;">
+                        <div class="card-header"><strong>{{ type }} Categories</strong></div>
+                        <div class="card-body-dash">
+                            <div id="donutchart{{ type }}" style="width: 28rem; height: 28rem; padding: 0px"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
 
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <script>
+        $(document).ready(function () {
+
+            google.charts.load("current", {packages: ["corechart"]});
+            google.charts.setOnLoadCallback(drawChart);
+
+            function drawChart() {
+                var incomeCategoriesData ={{ income_categories|safe }};
+                var incomeData = google.visualization.arrayToDataTable(incomeCategoriesData);
+
+                var expenseCategoriesData ={{ expense_categories|safe }};
+                var expenseData = google.visualization.arrayToDataTable(expenseCategoriesData);
+
+                var options = {
+                    legend: {position: 'top'},
+                    fontSize: 14
+                };
+
+                var expenseChart = new google.visualization.PieChart(document.getElementById('donutchartExpense'));
+                expenseChart.draw(expenseData, options);
+
+                var incomeChart = new google.visualization.PieChart(document.getElementById('donutchartIncome'));
+                incomeChart.draw(incomeData, options);
+            }
+        });
+    </script>
 {% endblock %}

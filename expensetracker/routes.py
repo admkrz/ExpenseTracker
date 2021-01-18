@@ -48,12 +48,29 @@ def index():
                 else:
                     incomes.append(transaction)
 
+        types = ['Expense', 'Income']
+        expense_categories = [['Category', 'Sum']]
+        expense_sum = 0
+        income_categories = [['Category', 'Sum']]
+        income_sum = 0
+
+        for category in user.categories.filter_by().all():
+            if category.type == TransactionType.expense:
+                category_sum = sum([t.amount for t in category.transactions.filter_by().all()])
+                expense_sum += category_sum
+                expense_categories.append([category.name, category_sum])
+            else:
+                category_sum = sum([t.amount for t in category.transactions.filter_by().all()])
+                income_sum += category_sum
+                income_categories.append([category.name, category_sum])
+
         return render_template('index.html',
                                expenses=sorted(expenses, key=operator.attrgetter("date"), reverse=True)[0:5],
                                incomes=sorted(incomes, key=operator.attrgetter("date"), reverse=True)[0:5],
                                budgets=budgets, monthly_expenses=sum_monthly(expenses),
                                monthly_incomes=sum_monthly(incomes), weekly_expenses=sum_weekly(expenses),
-                               weekly_incomes=sum_weekly(incomes), currency=currency)
+                               weekly_incomes=sum_weekly(incomes), currency=currency, types=types,
+                               income_categories=income_categories, expense_categories=expense_categories)
     else:
         return redirect('login')
 
@@ -455,7 +472,25 @@ def report_monthly():
 @app.route('/reports/categories')
 @login_required
 def report_categories():
-    return render_template('reportcategories.html', title='Categories Report')
+    user = User.query.filter_by(username=current_user.username).first()
+    types = ['Expense', 'Income']
+    expense_categories = [['Category', 'Sum']]
+    expense_sum = 0
+    income_categories = [['Category', 'Sum']]
+    income_sum = 0
+
+    for category in user.categories.filter_by().all():
+        if category.type == TransactionType.expense:
+            category_sum = sum([t.amount for t in category.transactions.filter_by().all()])
+            expense_sum += category_sum
+            expense_categories.append([category.name, category_sum])
+        else:
+            category_sum = sum([t.amount for t in category.transactions.filter_by().all()])
+            income_sum += category_sum
+            income_categories.append([category.name, category_sum])
+
+    return render_template('reportcategories.html', title='Categories Report', types=types,
+                           income_categories=income_categories, expense_categories=expense_categories)
 
 
 @app.route('/reports/budgets')

@@ -1,5 +1,9 @@
 {% extends "layout.html" %}
 
+{% block scripts %}
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+{% endblock %}
+
 {% block content %}
     {% if current_user.is_authenticated %}
         <h1>Dashboard</h1>
@@ -246,9 +250,7 @@
                 <h2 style="text-align:left">Day by day Transactions</h2>
             </div>
         </div>
-        <p class="small" style="text-align:left"><a href={{ url_for('report_daily') }}>(view whole daily
-            report)</a>
-        </p>
+        <p class="small" style="text-align:left"><a href={{ url_for('report_daily') }}>(view full daily report)</a></p>
 
 
         <br>
@@ -257,20 +259,30 @@
                 <h2 style="text-align:left">Month by month Transactions</h2>
             </div>
         </div>
-        <p class="small" style="text-align:left"><a href={{ url_for('report_monthly') }}>(view whole monthly
-            report)</a>
+        <p class="small" style="text-align:left"><a href={{ url_for('report_monthly') }}>(view full monthly report)</a>
         </p>
 
         <br>
         <div class="row">
             <div class="col-12">
-                <h2 style="text-align:left">Last month Categories summary</h2>
+                <h2 style="text-align:left">All time Categories summary</h2>
             </div>
         </div>
-        <p class="small" style="text-align:left"><a href={{ url_for('report_categories') }}>(view whole
-            categories
-            report)</a>
-        </p>
+        <p class="small" style="text-align:left"><a href={{ url_for('report_categories') }}>(view full categories
+            report)</a></p>
+
+        <div class="row">
+            {% for type in types %}
+                <div class="col">
+                    <div class="card border-secondary mb-3" style="max-width: 30rem;">
+                        <div class="card-header"><strong>{{ type }} Categories</strong></div>
+                        <div class="card-body-dash">
+                            <div id="donutchart{{ type }}" style="width: 28rem; height: 28rem; padding: 0px"></div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
 
         <br>
         <div class="row">
@@ -278,9 +290,36 @@
                 <h2 style="text-align:left">Day by day Budgets balances</h2>
             </div>
         </div>
-        <p class="small" style="text-align:left"><a href={{ url_for('report_budgets') }}>(view whole budgets
-            report)</a>
+        <p class="small" style="text-align:left"><a href={{ url_for('report_budgets') }}>(view full budgets report)</a>
         </p>
     {% endif %}
+
+
+<script>
+    $(document).ready(function () {
+
+        google.charts.load("current", {packages: ["corechart"]});
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+            var incomeCategoriesData ={{ income_categories|safe }};
+            var incomeData = google.visualization.arrayToDataTable(incomeCategoriesData);
+
+            var expenseCategoriesData ={{ expense_categories|safe }};
+            var expenseData = google.visualization.arrayToDataTable(expenseCategoriesData);
+
+            var options = {
+                legend: {position: 'top'},
+                fontSize: 14
+            };
+
+            var expenseChart = new google.visualization.PieChart(document.getElementById('donutchartExpense'));
+            expenseChart.draw(expenseData, options);
+
+            var incomeChart = new google.visualization.PieChart(document.getElementById('donutchartIncome'));
+            incomeChart.draw(incomeData, options);
+        }
+    });
+</script>
 
 {% endblock %}
