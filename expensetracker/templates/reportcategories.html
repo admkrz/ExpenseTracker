@@ -87,90 +87,11 @@
         </div>
     </div>
 
+    <script src="/static/js/reportcategories.js"></script>
+
     <script>
-        $(document).ready(function () {
-
-            google.charts.load("current", {packages: ["corechart"]});
-            google.charts.setOnLoadCallback(drawChart);
-
-            function drawChart() {
-                var incomeCategoriesData ={{ income_categories|safe }};
-                var incomeData = google.visualization.arrayToDataTable(incomeCategoriesData);
-
-                var expenseCategoriesData ={{ expense_categories|safe }};
-                var expenseData = google.visualization.arrayToDataTable(expenseCategoriesData);
-
-                var options = {
-                    legend: {position: 'top'},
-                    fontSize: 14
-                };
-
-                var expenseChartDiv = document.getElementById('donutchartExpense');
-                var expenseChartDownloadDiv = document.getElementById('donutchartExpenseDownload');
-                var expenseChart = new google.visualization.PieChart(expenseChartDiv);
-
-                // Wait for the chart to finish drawing before calling the getImageURI() method.
-                google.visualization.events.addListener(expenseChart, 'ready', function () {
-                    expenseChartDownloadDiv.innerHTML = '<img id="expenseChartImg" src="' + expenseChart.getImageURI() + '">';
-                    expenseChartDownloadDiv.hidden = true;
-                });
-
-                expenseChart.draw(expenseData, options);
-
-                var incomeChartDiv = document.getElementById('donutchartIncome');
-                var incomeChartDownloadDiv = document.getElementById('donutchartIncomeDownload');
-                var incomeChart = new google.visualization.PieChart(incomeChartDiv);
-
-                // Wait for the chart to finish drawing before calling the getImageURI() method.
-                google.visualization.events.addListener(incomeChart, 'ready', function () {
-                    incomeChartDownloadDiv.innerHTML = '<img id="incomeChartImg" src="' + incomeChart.getImageURI() + '">';
-                    incomeChartDownloadDiv.hidden = true;
-                });
-
-                incomeChart.draw(incomeData, options);
-            }
-
-
-        });
-
-        document.getElementById("downloadCategoriesExpenseJPG").addEventListener('click', function () {
-            var expenseChart = document.getElementById('expenseChartImg');
-
-            var imgUri = expenseChart.src;
-
-            var a = document.getElementById("downloadCategoriesExpenseJPG");
-            /*insert chart image url to download button (tag: <a></a>) */
-            a.href = imgUri;
-        });
-
-        document.getElementById("downloadCategoriesExpensePNG").addEventListener('click', function () {
-            var expenseChart = document.getElementById('expenseChartImg');
-
-            var imgUri = expenseChart.src;
-
-            var a = document.getElementById("downloadCategoriesExpensePNG");
-            /*insert chart image url to download button (tag: <a></a>) */
-            a.href = imgUri;
-        });
-
-        document.getElementById("downloadCategoriesIncomeJPG").addEventListener('click', function () {
-            var expenseChart = document.getElementById('incomeChartImg');
-
-            var imgUri = expenseChart.src;
-
-            var a = document.getElementById("downloadCategoriesIncomeJPG");
-            /*insert chart image url to download button (tag: <a></a>) */
-            a.href = imgUri;
-        });
-
-        document.getElementById("downloadCategoriesIncomePNG").addEventListener('click', function () {
-            var expenseChart = document.getElementById('incomeChartImg');
-
-            var imgUri = expenseChart.src;
-
-            var a = document.getElementById("downloadCategoriesIncomePNG");
-            /*insert chart image url to download button (tag: <a></a>) */
-            a.href = imgUri;
-        });
+    $(document).ready(function () {
+        drawCategoriesChart({{ income_categories|safe }}, {{ expense_categories|safe }});
+    });
     </script>
 {% endblock %}

@@ -390,143 +390,18 @@
         </div>
     {% endif %}
 
+<script src="/static/js/reportdaily.js"></script>
+<script src="/static/js/reportmonthly.js"></script>
+<script src="/static/js/reportcategories.js"></script>
+<script src="/static/js/reportbudgets.js"></script>
+
 <script>
-    var ctxIncome = document.getElementById('dailyIncomeChart').getContext('2d');
-    var chartIncome = new Chart(ctxIncome, {
-        // The type of chart we want to create
-        type: 'bar',
-
-        // The data for our dataset
-        data: {
-            labels: {{ daily_labels|safe }},
-            datasets: [{
-                label: 'Daily Incomes',
-                fill: false,
-                lineTension: 0.1,
-                backgroundColor: 'rgba(0, 102, 0, 1)',
-                borderColor: 'rgba(0, 51, 0, 1)',
-                data: {{ daily_incomes|safe }}
-            }]
-        },
-
-        // Configuration options go here
-        options: {}
-    });
-
-    var ctxExpense = document.getElementById('dailyExpenseChart').getContext('2d');
-    var chartExpense = new Chart(ctxExpense, {
-        // The type of chart we want to create
-        type: 'bar',
-
-        // The data for our dataset
-        data: {
-            labels: {{ daily_labels|safe }},
-            datasets: [{
-                label: 'Daily Expenses',
-                fill: false,
-                lineTension: 0.1,
-                backgroundColor: 'rgba(255, 128, 0, 1)',
-                borderColor: 'rgba(204, 102, 0, 1)',
-                data: {{ daily_expenses|safe }}
-            }]
-        },
-
-        // Configuration options go here
-        options: {}
-    });
-
-    var ctxMonthlyIncome = document.getElementById('monthlyIncomeChart').getContext('2d');
-    var chartMonthlyIncome = new Chart(ctxMonthlyIncome, {
-        // The type of chart we want to create
-        type: 'bar',
-
-        // The data for our dataset
-        data: {
-            labels: {{ monthly_labels|safe }},
-            datasets: [{
-                label: 'Monthly Incomes',
-                fill: false,
-                lineTension: 0.1,
-                backgroundColor: 'rgba(0, 102, 0, 1)',
-                borderColor: 'rgba(0, 51, 0, 1)',
-                data: {{ monthly_incomes|safe }}
-            }]
-        },
-
-        // Configuration options go here
-        options: {}
-    });
-
-    var ctxMonthlyExpense = document.getElementById('monthlyExpenseChart').getContext('2d');
-    var chartMonthlyExpense = new Chart(ctxMonthlyExpense, {
-        // The type of chart we want to create
-        type: 'bar',
-
-        // The data for our dataset
-        data: {
-            labels: {{ monthly_labels|safe }},
-            datasets: [{
-                label: 'Monthly Expenses',
-                fill: false,
-                lineTension: 0.1,
-                backgroundColor: 'rgba(255, 128, 0, 1)',
-                borderColor: 'rgba(204, 102, 0, 1)',
-                data: {{ monthly_expenses|safe }}
-            }]
-        },
-
-        // Configuration options go here
-        options: {}
-    });
-
+    drawDailyChart({{ daily_labels|safe }}, {{ daily_expenses|safe }}, {{ daily_incomes|safe }});
+    drawMonthlyChart({{ monthly_labels|safe }}, {{ monthly_expenses|safe }}, {{ monthly_incomes|safe }});
     $(document).ready(function () {
-
-        google.charts.load("current", {packages: ["corechart"]});
-        google.charts.setOnLoadCallback(drawChart);
-
-        function drawChart() {
-            var incomeCategoriesData ={{ income_categories|safe }};
-            var incomeData = google.visualization.arrayToDataTable(incomeCategoriesData);
-
-            var expenseCategoriesData ={{ expense_categories|safe }};
-            var expenseData = google.visualization.arrayToDataTable(expenseCategoriesData);
-
-            var options = {
-                legend: {position: 'top'},
-                fontSize: 14
-            };
-
-            var expenseChart = new google.visualization.PieChart(document.getElementById('donutchartExpense'));
-            expenseChart.draw(expenseData, options);
-
-            var incomeChart = new google.visualization.PieChart(document.getElementById('donutchartIncome'));
-            incomeChart.draw(incomeData, options);
-        }
+        drawCategoriesChartIndex({{ income_categories|safe }}, {{ expense_categories|safe }});
     });
-
-    if (document.getElementById('budgetsChart') != null) {
-        var ctx = document.getElementById('budgetsChart').getContext('2d');
-        var chart = new Chart(ctx, {
-            // The type of chart we want to create
-            type: 'line',
-
-            // The data for our dataset
-            data: {
-                labels: {{ budgets_days_labels|safe }},
-                datasets: [{
-                    label: 'Budgets Balance',
-                    fill: false,
-                    lineTension: 0.1,
-                    backgroundColor: 'rgba(236, 43, 43, 1)',
-                    borderColor: 'rgba(63, 191, 80, 1)',
-                    data: {{ budgets_days_data|safe }}
-                }]
-            },
-
-            // Configuration options go here
-            options: {}
-        });
-    }
+    drawBudgetsChart({{ budgets_days_labels|safe }}, {{ budgets_days_data|safe }})
 </script>
 
 {% endblock %}
