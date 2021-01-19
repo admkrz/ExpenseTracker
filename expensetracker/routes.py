@@ -8,114 +8,14 @@ from flask_login import login_user, current_user, logout_user, login_required
 from expensetracker.forms import RegistrationForm, LoginForm, UpdateAccountForm, ChangePasswordForm, ChangeCurrencyForm, \
     CreateCategoryForm, RenameForm, DeleteForm, CreateBudgetForm, TransactionForm
 from expensetracker import app, db, bcrypt
+from expensetracker.helpers import sum_month, budget_days_data, get_daily_transactions, sum_week, \
+    get_monthly_transactions, sum_balance, optimize_categories, get_categories_data, get_transactions_after_date
 from expensetracker.models import User, Category, Budget, Transaction, TransactionType
 
+# Initial new user objects
 new_user_expense_categories = ["Groceries", "Housing", "Shopping", "Entertainment", "Travel", "Health", "Other"]
 new_user_income_categories = ["Salary", "Bonus"]
 new_user_budgets = ["Card Budget", "Cash Budget"]
-
-
-def sum_month(transactions):
-    today = date.today()
-    monthly_transactions = [transaction for transaction in transactions if
-                            (today.year - transaction.date.year) * 12 + (today.month - transaction.date.month) < 1]
-    return sum([transaction.amount for transaction in monthly_transactions])
-
-
-def sum_week(transactions):
-    today = date.today()
-    weekly_transactions = [transaction for transaction in transactions if
-                           (today - transaction.date).days < 7]
-    return sum([transaction.amount for transaction in weekly_transactions])
-
-
-def balance_before_date(transactions, date):
-    expenses_before_date = sum([transaction.amount for transaction in transactions if
-                                transaction.type == TransactionType.expense and transaction.date <= date])
-    incomes_before_date = sum([transaction.amount for transaction in transactions if
-                               transaction.type == TransactionType.income and transaction.date <= date])
-    return float("{:.2f}".format(incomes_before_date - expenses_before_date))
-
-
-def budget_days_data(budgets):
-    transactions = []
-    for budget in budgets:
-        for transaction in budget.transactions.filter_by().all():
-            transactions.append(transaction)
-    sorted_transactions = sorted(transactions, key=operator.attrgetter('date'))
-    budget_days_labels = [t.date for t in sorted_transactions]
-    budget_days_data = []
-    for day in budget_days_labels:
-        budget_days_data.append(balance_before_date(sorted_transactions, day))
-    return [item.strftime('%Y-%m-%d') for item in budget_days_labels], budget_days_data
-
-
-def get_daily_labels():
-    today = date.today()
-    month_ago = date.today() - timedelta(days=30)
-    labels = []
-    while month_ago <= today:
-        labels.append(month_ago)
-        month_ago += timedelta(days=1)
-    return labels
-
-
-def get_daily_transactions(budgets):
-    daily_expenses = []
-    daily_incomes = []
-    transactions = []
-    for budget in budgets:
-        for transaction in budget.transactions.filter_by().all():
-            transactions.append(transaction)
-    sorted_transactions = sorted(transactions, key=operator.attrgetter('date'))
-    labels = get_daily_labels()
-    for day in labels:
-        daily_expense = 0
-        daily_income = 0
-        while len(sorted_transactions) > 0 and sorted_transactions[0].date == day:
-            if sorted_transactions[0].type == TransactionType.expense:
-                daily_expense += sorted_transactions[0].amount
-            else:
-                daily_income += sorted_transactions[0].amount
-            sorted_transactions.pop(0)
-        daily_expenses.append(daily_expense)
-        daily_incomes.append(daily_income)
-    return [item.strftime('%Y-%m-%d') for item in labels], daily_expenses, daily_incomes
-
-
-def get_monthly_labels():
-    today = date.today()
-    year_ago = date.today() - relativedelta.relativedelta(months=11)
-    labels = []
-    while year_ago <= today:
-        labels.append((year_ago.strftime('%B'), year_ago.strftime('%m-%Y')))
-        year_ago += relativedelta.relativedelta(months=1)
-    return labels
-
-
-def get_monthly_transactions(budgets):
-    monthly_expenses = []
-    monthly_incomes = []
-    transactions = []
-    for budget in budgets:
-        for transaction in budget.transactions.filter_by().all():
-            transactions.append(transaction)
-    sorted_transactions = sorted(transactions, key=operator.attrgetter('date'))
-    labels = get_monthly_labels()
-    month_labels = []
-    for month in labels:
-        month_labels.append(month[0])
-        monthly_expense = 0
-        monthly_income = 0
-        while len(sorted_transactions) > 0 and sorted_transactions[0].date.strftime('%m-%Y') == month[1]:
-            if sorted_transactions[0].type == TransactionType.expense:
-                monthly_expense += sorted_transactions[0].amount
-            else:
-                monthly_income += sorted_transactions[0].amount
-            sorted_transactions.pop(0)
-        monthly_expenses.append(monthly_expense)
-        monthly_incomes.append(monthly_income)
-    return month_labels, monthly_expenses, monthly_incomes
 
 
 @app.route('/')
@@ -131,8 +31,6 @@ def index():
         expenses = []
         incomes = []
 
-        (budgets_days_labels, budgets_days_data) = budget_days_data(user.budgets.filter_by().all())
-
         for budget in user.budgets.filter_by().all():
             for transaction in budget.transactions.filter_by().all():
                 if transaction.type == TransactionType.expense:
@@ -141,24 +39,15 @@ def index():
                     incomes.append(transaction)
 
         types = ['Expense', 'Income']
-        expense_categories = [['Category', 'Sum']]
-        expense_sum = 0
-        income_categories = [['Category', 'Sum']]
-        income_sum = 0
-
-        for category in user.categories.filter_by().all():
-            if category.type == TransactionType.expense:
-                category_sum = sum([t.amount for t in category.transactions.filter_by().all()])
-                expense_sum += category_sum
-                expense_categories.append([category.name, category_sum])
-            else:
-                category_sum = sum([t.amount for t in category.transactions.filter_by().all()])
-                income_sum += category_sum
-                income_categories.append([category.name, category_sum])
 
         (daily_labels, daily_expenses, daily_incomes) = get_daily_transactions(user.budgets.filter_by().all())
 
         (monthly_labels, monthly_expenses, monthly_incomes) = get_monthly_transactions(user.budgets.filter_by().all())
+
+        (expense_categories, income_categories, expense_sum, income_sum) = get_categories_data(
+            user.categories.filter_by().all())
+
+        (budgets_days_labels, budgets_days_data) = budget_days_data(user.budgets.filter_by().all())
 
         return render_template('index.html',
                                expenses=sorted(expenses, key=operator.attrgetter("date"), reverse=True)[0:5],
@@ -181,12 +70,14 @@ def register():
         return redirect(url_for(index))
     form = RegistrationForm()
     if form.validate_on_submit():
+        # Create new user
         hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
 
         user = User(username=form.username.data, email=form.email.data, password=hashed_passwd, currency='USD')
         db.session.add(user)
         db.session.commit()
 
+        # Create initial objects for new user
         for category_name in new_user_expense_categories:
             expense_category = Category(name=category_name, type=TransactionType.expense, user=user, hidden=False)
             db.session.add(expense_category)
@@ -220,7 +111,7 @@ def login():
             # flash('Successfully logged in!', 'success')
             return redirect(next_page) if next_page else redirect(url_for('index'))
         else:
-            flash('Login Unsuccessful. Incorrect password', 'danger')
+            flash('Login Unsuccessful. Incorrect email or password', 'danger')
     return render_template('login.html', title='Login', form=form)
 
 
@@ -307,21 +198,6 @@ def add_incomes():
     return add_transaction('Income', value)
 
 
-def sum_balance(budget):
-    incomes_sum = sum([income.amount for income in budget.transactions.filter_by(type='income').all()])
-    expenses_sum = sum([expense.amount for expense in budget.transactions.filter_by(type='expense').all()])
-    budget.balance = incomes_sum - expenses_sum
-    db.session.commit()
-
-
-def optimize_categories(type):
-    categories = Category.query.filter_by(type=type.lower(), hidden=True).all()
-    for category in categories:
-        if len(category.transactions.filter_by().all()) == 0:
-            db.session.delete(category)
-            db.session.commit()
-
-
 def add_transaction(type, value):
     user = User.query.filter_by(username=current_user.username).first()
     currency = user.currency
@@ -401,6 +277,7 @@ def transactions_history(type):
         db.session.commit()
         flash('Transaction changes saved!', 'success')
 
+        # Calculate budget balances and check if any category is unused
         sum_balance(old_budget)
         sum_balance(new_budget)
         optimize_categories(type)
@@ -415,6 +292,8 @@ def transactions_history(type):
         db.session.commit()
         flash("Transaction deleted!", 'danger')
 
+        # Calculate budget balances and check if any category is unused
+        sum_balance(old_budget)
         sum_balance(old_budget)
         optimize_categories(type)
 
@@ -460,6 +339,7 @@ def budgets():
         budget = user_budgets.filter_by(id=int(delete_form.item_to_delete.data))
         budget_name = budget.first().name
 
+        # Delete all transactions within this budget
         for transaction in budget.first().transactions.filter_by().all():
             db.session.delete(transaction)
             db.session.commit()
@@ -504,6 +384,7 @@ def manage_categories(category_type, type_name):
         if category and not category.hidden:
             flash('Category with this name already exists!', 'danger')
         elif category and category.hidden:
+            # If category with this name exists and it's hidden, change hidden to false and dont' create new category
             category.hidden = False
             db.session.commit()
             flash(f'New {type_name} category created!', 'success')
@@ -522,6 +403,8 @@ def manage_categories(category_type, type_name):
         if new_category and not new_category.hidden:
             flash('Category with this name already exists!', 'danger')
         elif new_category and new_category.hidden:
+            # If category with this name exists and it's hidden, change hidden to false, delete old category
+            # and switch all transactions from old category to the unhidden one create new category
             for transaction in Transaction.query.filter_by(category_id=category.id).all():
                 transaction.category_id = new_category.id
                 db.session.commit()
@@ -538,6 +421,7 @@ def manage_categories(category_type, type_name):
     if delete_form.validate_on_submit():
         category = user_categories.filter_by(id=int(delete_form.item_to_delete.data)).first()
         category_name = category.name
+        # If category has any transactions hide category, if not then delete category
         if category.transactions.filter_by().all():
             category.hidden = True
         else:
@@ -565,15 +449,11 @@ def report_daily():
     (daily_labels, daily_expenses, daily_incomes) = get_daily_transactions(user.budgets.filter_by().all())
 
     month_ago = date.today() - timedelta(days=30)
-    budgets = user.budgets.filter_by().all()
-    transactions = [transaction for budget in budgets for transaction in budget.transactions.filter_by().all()]
-    daily_expenses_records = [transaction for transaction in transactions if
-                              transaction.type == TransactionType.expense and transaction.date > month_ago]
-    daily_incomes_records = [transaction for transaction in transactions if
-                             transaction.type == TransactionType.income and transaction.date > month_ago]
+    (last_month_expenses, last_month_incomes) = get_transactions_after_date(user.budgets.filter_by().all(), month_ago)
+
     return render_template('reportdaily.html', title='Daily Report', daily_labels=daily_labels,
                            daily_expenses=daily_expenses, daily_incomes=daily_incomes, currency=user.currency,
-                           daily_expenses_records=daily_expenses_records, daily_incomes_records=daily_incomes_records)
+                           daily_expenses_records=last_month_expenses, daily_incomes_records=last_month_incomes)
 
 
 @app.route('/reports/monthly')
@@ -584,41 +464,23 @@ def report_monthly():
     (monthly_labels, monthly_expenses, monthly_incomes) = get_monthly_transactions(user.budgets.filter_by().all())
 
     year_ago = date.today() - relativedelta.relativedelta(months=11)
-    budgets = user.budgets.filter_by().all()
-    transactions = [transaction for budget in budgets for transaction in budget.transactions.filter_by().all()]
-    monthly_expenses_records = [transaction for transaction in transactions if
-                                transaction.type == TransactionType.expense and transaction.date > year_ago]
-    monthly_incomes_records = [transaction for transaction in transactions if
-                               transaction.type == TransactionType.income and transaction.date > year_ago]
+    (last_year_expenses, last_year_incomes) = get_transactions_after_date(user.budgets.filter_by().all(), year_ago)
+
     return render_template('reportmonthly.html', title='Monthly Report', monthly_labels=monthly_labels,
                            monthly_expenses=monthly_expenses, monthly_incomes=monthly_incomes, currency=user.currency,
-                           monthly_expenses_records=monthly_expenses_records,
-                           monthly_incomes_records=monthly_incomes_records)
+                           monthly_expenses_records=last_year_expenses, monthly_incomes_records=last_year_incomes)
 
 
 @app.route('/reports/categories')
 @login_required
 def report_categories():
     user = User.query.filter_by(username=current_user.username).first()
-    types = ['Expense', 'Income']
-    expense_categories = [['Category', 'Sum']]
-    expense_sum = 0
-    income_categories = [['Category', 'Sum']]
-    income_sum = 0
 
-    for category in user.categories.filter_by().all():
-        if category.type == TransactionType.expense:
-            category_sum = sum([t.amount for t in category.transactions.filter_by().all()])
-            expense_sum += category_sum
-            expense_categories.append([category.name, category_sum])
-        else:
-            category_sum = sum([t.amount for t in category.transactions.filter_by().all()])
-            income_sum += category_sum
-            income_categories.append([category.name, category_sum])
+    (expense_categories, income_categories, expense_sum, income_sum) = get_categories_data(
+        user.categories.filter_by().all())
 
-    return render_template('reportcategories.html', title='Categories Report', types=types,
-                           income_categories=income_categories, expense_categories=expense_categories,
-                           income_sum=income_sum, expense_sum=expense_sum)
+    return render_template('reportcategories.html', title='Categories Report', income_categories=income_categories,
+                           expense_categories=expense_categories, income_sum=income_sum, expense_sum=expense_sum)
 
 
 @app.route('/reports/budgets')

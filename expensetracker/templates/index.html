@@ -152,7 +152,7 @@
                             <td>{{ result.description }}</td>
                             <td>{{ result.category.__str__() }}</td>
                             <td>{{ result.date }}</td>
-                            <td>{{ result.amount }}</td>
+                            <td>{{ result.amount }} {{ currency }}</td>
                         </tr>
                     {% endfor %}
                 {% endif %}
@@ -214,7 +214,7 @@
                             <td>{{ result.description }}</td>
                             <td>{{ result.category.__str__() }}</td>
                             <td>{{ result.date }}</td>
-                            <td>{{ result.amount }}</td>
+                            <td>{{ result.amount }} {{ currency }}</td>
                         </tr>
                     {% endfor %}
                 {% endif %}
