@@ -14,14 +14,35 @@
             <div class="col">
                 <div class="card border-secondary">
                     <div class="card-header"><strong>Budgets total balance</strong></div>
-                    <div class="card-body-dash">
-                        <canvas id="budgetsChart"></canvas>
-                    </div>
+                    {% if budgets_days_labels %}
+                        <div class="card-body-dash">
+                            <canvas id="budgetsChart"></canvas>
+                        </div>
+                        <div class="card-footer">
+                            <a id="downloadBudgetReport" download="BudgetsBalanceReport.jpg" href=""
+                               class="btn btn-primary float-right bg-flat-color-1 mr-2">
+                                <i class="fa fa-download"></i> JPG
+                            </a>
+
+                            <a id="downloadBudgetReportPNG" download="BudgetsBalanceReport.png" href=""
+                               class="btn btn-primary float-right bg-flat-color-1 mr-2">
+                                <i class="fa fa-download"></i> PNG
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="card border-danger">
+                            <div class="card-body">
+                                <h4 class="card-title">You don't have any transactions!</h4>
+                                <p class="card-text">Add transactions to your budgets to display information in
+                                    this section!</p>
+                                <a class="btn btn-outline-info"
+                                   href={{ url_for('add_expenses') }} role="button">Add Expense</a>
+                                <a class="btn btn-outline-info" href={{ url_for('add_incomes') }} role="button">Add
+                                    Income</a>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col">
             </div>
         </div>
     </div>
@@ -50,5 +71,23 @@
                 options: {}
             });
         }
+
+        document.getElementById("downloadBudgetReportJPG").addEventListener('click', function () {
+            /*Get image of canvas element*/
+            var url_base64jp = document.getElementById("budgetsChart").toDataURL("image/jpg");
+            /*get download button (tag: <a></a>) */
+            var a = document.getElementById("downloadBudgetReportJPG");
+            /*insert chart image url to download button (tag: <a></a>) */
+            a.href = url_base64jp;
+        });
+
+        document.getElementById("downloadBudgetReportPNG").addEventListener('click', function () {
+            /*Get image of canvas element*/
+            var url_base64jp = document.getElementById("budgetsChart").toDataURL("image/png");
+            /*get download button (tag: <a></a>) */
+            var a = document.getElementById("downloadBudgetReportPNG");
+            /*insert chart image url to download button (tag: <a></a>) */
+            a.href = url_base64jp;
+        });
     </script>
 {% endblock %}

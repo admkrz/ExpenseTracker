@@ -7,6 +7,7 @@ from sqlalchemy import event
 from expensetracker import db, login_manager
 
 
+# Configure User table as source of users in app
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -67,6 +68,7 @@ class Category(db.Model):
         return f"{self.name}"
 
 
+# Trigger on creation of new budget
 @event.listens_for(Budget, 'before_insert')
 def on_create_listener(mapper, connection, target):
     target.balance = 0.0

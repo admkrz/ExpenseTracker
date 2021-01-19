@@ -1,5 +1,5 @@
 from expensetracker import app
-import ccy
 
+#Run main app
 if __name__ == '__main__':
     app.run()

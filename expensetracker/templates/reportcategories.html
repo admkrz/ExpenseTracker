@@ -18,23 +18,74 @@
 
     <h1>Categories Report</h1>
     <br>
-    {% for type in types %}
-        <div class="jumbotron" style="padding:2rem 1rem">
-            <div class="row">
-                <div class="col">
-                    <div class="card border-secondary mb-3" style="max-width: 30rem;">
-                        <div class="card-header"><strong>{{ type }} Categories</strong></div>
+    <div class="jumbotron" style="padding:2rem 1rem">
+        <div class="row">
+            <div class="col">
+                <div class="card border-secondary mb-3" style="max-width: 30rem;">
+                    <div class="card-header"><strong>Expense Categories</strong></div>
+                    {% if expense_sum > 0 %}
                         <div class="card-body-dash">
-                            <div id="donutchart{{ type }}" style="width: 28rem; height: 28rem; padding: 0px"></div>
+                            <div id="donutchartExpense" style="width: 28rem; height: 28rem; padding: 0px"></div>
+                            <div id="donutchartExpenseDownload" type="hidden"></div>
                         </div>
-                    </div>
-                </div>
-                <div class="col">
+                        <div class="card-footer">
+                            <a id="downloadCategoriesExpenseJPG" download="ExpenseCategoriesReport.jpg" href=""
+                               class="btn btn-primary float-right bg-flat-color-1 mr-2">
+                                <i class="fa fa-download"></i> JPG
+                            </a>
 
+                            <a id="downloadCategoriesExpensePNG" download="ExpenseCategoriesReport.png" href=""
+                               class="btn btn-primary float-right bg-flat-color-1 mr-2">
+                                <i class="fa fa-download"></i> PNG
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="card border-danger">
+                            <div class="card-body">
+                                <h4 class="card-title">You don't have any expenses!</h4>
+                                <p class="card-text">Add expenses to your budgets to display information in
+                                    this section!</p>
+                                <a class="btn btn-outline-info"
+                                   href={{ url_for('add_expenses') }} role="button">Add Expense</a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col">
+                <div class="card border-secondary mb-3" style="max-width: 30rem;">
+                    <div class="card-header"><strong>Income Categories</strong></div>
+                    {% if income_sum > 0 %}
+                        <div class="card-body-dash">
+                            <div id="donutchartIncome" style="width: 28rem; height: 28rem; padding: 0px"></div>
+                            <div id="donutchartIncomeDownload" type="hidden"></div>
+                        </div>
+                        <div class="card-footer">
+                            <a id="downloadCategoriesIncomeJPG" download="IncomeCategoriesReport.jpg" href=""
+                               class="btn btn-primary float-right bg-flat-color-1 mr-2">
+                                <i class="fa fa-download"></i> JPG
+                            </a>
+
+                            <a id="downloadCategoriesIncomePNG" download="IncomeCategoriesReport.png" href=""
+                               class="btn btn-primary float-right bg-flat-color-1 mr-2">
+                                <i class="fa fa-download"></i> PNG
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="card border-danger">
+                            <div class="card-body">
+                                <h4 class="card-title">You don't have any incomes!</h4>
+                                <p class="card-text">Add incomes to your budgets to display information in
+                                    this section!</p>
+                                <a class="btn btn-outline-info"
+                                   href={{ url_for('add_incomes') }} role="button">Add Income</a>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
-    {% endfor %}
+    </div>
 
     <script>
         $(document).ready(function () {
@@ -54,12 +105,72 @@
                     fontSize: 14
                 };
 
-                var expenseChart = new google.visualization.PieChart(document.getElementById('donutchartExpense'));
+                var expenseChartDiv = document.getElementById('donutchartExpense');
+                var expenseChartDownloadDiv = document.getElementById('donutchartExpenseDownload');
+                var expenseChart = new google.visualization.PieChart(expenseChartDiv);
+
+                // Wait for the chart to finish drawing before calling the getImageURI() method.
+                google.visualization.events.addListener(expenseChart, 'ready', function () {
+                    expenseChartDownloadDiv.innerHTML = '<img id="expenseChartImg" src="' + expenseChart.getImageURI() + '">';
+                    expenseChartDownloadDiv.hidden = true;
+                });
+
                 expenseChart.draw(expenseData, options);
 
-                var incomeChart = new google.visualization.PieChart(document.getElementById('donutchartIncome'));
+                var incomeChartDiv = document.getElementById('donutchartIncome');
+                var incomeChartDownloadDiv = document.getElementById('donutchartIncomeDownload');
+                var incomeChart = new google.visualization.PieChart(incomeChartDiv);
+
+                // Wait for the chart to finish drawing before calling the getImageURI() method.
+                google.visualization.events.addListener(incomeChart, 'ready', function () {
+                    incomeChartDownloadDiv.innerHTML = '<img id="incomeChartImg" src="' + incomeChart.getImageURI() + '">';
+                    incomeChartDownloadDiv.hidden = true;
+                });
+
                 incomeChart.draw(incomeData, options);
             }
+
+
+        });
+
+        document.getElementById("downloadCategoriesExpenseJPG").addEventListener('click', function () {
+            var expenseChart = document.getElementById('expenseChartImg');
+
+            var imgUri = expenseChart.src;
+
+            var a = document.getElementById("downloadCategoriesExpenseJPG");
+            /*insert chart image url to download button (tag: <a></a>) */
+            a.href = imgUri;
+        });
+
+        document.getElementById("downloadCategoriesExpensePNG").addEventListener('click', function () {
+            var expenseChart = document.getElementById('expenseChartImg');
+
+            var imgUri = expenseChart.src;
+
+            var a = document.getElementById("downloadCategoriesExpensePNG");
+            /*insert chart image url to download button (tag: <a></a>) */
+            a.href = imgUri;
+        });
+
+        document.getElementById("downloadCategoriesIncomeJPG").addEventListener('click', function () {
+            var expenseChart = document.getElementById('incomeChartImg');
+
+            var imgUri = expenseChart.src;
+
+            var a = document.getElementById("downloadCategoriesIncomeJPG");
+            /*insert chart image url to download button (tag: <a></a>) */
+            a.href = imgUri;
+        });
+
+        document.getElementById("downloadCategoriesIncomePNG").addEventListener('click', function () {
+            var expenseChart = document.getElementById('incomeChartImg');
+
+            var imgUri = expenseChart.src;
+
+            var a = document.getElementById("downloadCategoriesIncomePNG");
+            /*insert chart image url to download button (tag: <a></a>) */
+            a.href = imgUri;
         });
     </script>
 {% endblock %}

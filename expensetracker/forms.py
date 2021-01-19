@@ -8,6 +8,7 @@ import ccy
 from expensetracker.models import User
 
 
+# Custom validation method
 def equalTo(password):
     def _equalTo(self, field):
         if field.data != self[password].data:
@@ -25,6 +26,7 @@ class RegistrationForm(FlaskForm):
                                                                                              message="Both passwords must be identical")])
     submit = SubmitField('Sign up')
 
+    # Custom validation methods
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
         if user:
@@ -48,6 +50,7 @@ class UpdateAccountForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email(message="This must be a valid email adress")])
     submit = SubmitField('Update')
 
+    # Custom validation methods
     def validate_username(self, username):
         if username.data != current_user.username:
             user = User.query.filter_by(username=username.data).first()

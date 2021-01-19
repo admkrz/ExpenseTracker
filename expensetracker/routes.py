@@ -561,18 +561,39 @@ def reports():
 @login_required
 def report_daily():
     user = User.query.filter_by(username=current_user.username).first()
+
     (daily_labels, daily_expenses, daily_incomes) = get_daily_transactions(user.budgets.filter_by().all())
+
+    month_ago = date.today() - timedelta(days=30)
+    budgets = user.budgets.filter_by().all()
+    transactions = [transaction for budget in budgets for transaction in budget.transactions.filter_by().all()]
+    daily_expenses_records = [transaction for transaction in transactions if
+                              transaction.type == TransactionType.expense and transaction.date > month_ago]
+    daily_incomes_records = [transaction for transaction in transactions if
+                             transaction.type == TransactionType.income and transaction.date > month_ago]
     return render_template('reportdaily.html', title='Daily Report', daily_labels=daily_labels,
-                           daily_expenses=daily_expenses, daily_incomes=daily_incomes)
+                           daily_expenses=daily_expenses, daily_incomes=daily_incomes, currency=user.currency,
+                           daily_expenses_records=daily_expenses_records, daily_incomes_records=daily_incomes_records)
 
 
 @app.route('/reports/monthly')
 @login_required
 def report_monthly():
     user = User.query.filter_by(username=current_user.username).first()
+
     (monthly_labels, monthly_expenses, monthly_incomes) = get_monthly_transactions(user.budgets.filter_by().all())
+
+    year_ago = date.today() - relativedelta.relativedelta(months=11)
+    budgets = user.budgets.filter_by().all()
+    transactions = [transaction for budget in budgets for transaction in budget.transactions.filter_by().all()]
+    monthly_expenses_records = [transaction for transaction in transactions if
+                                transaction.type == TransactionType.expense and transaction.date > year_ago]
+    monthly_incomes_records = [transaction for transaction in transactions if
+                               transaction.type == TransactionType.income and transaction.date > year_ago]
     return render_template('reportmonthly.html', title='Monthly Report', monthly_labels=monthly_labels,
-                           monthly_expenses=monthly_expenses, monthly_incomes=monthly_incomes)
+                           monthly_expenses=monthly_expenses, monthly_incomes=monthly_incomes, currency=user.currency,
+                           monthly_expenses_records=monthly_expenses_records,
+                           monthly_incomes_records=monthly_incomes_records)
 
 
 @app.route('/reports/categories')
@@ -596,7 +617,8 @@ def report_categories():
             income_categories.append([category.name, category_sum])
 
     return render_template('reportcategories.html', title='Categories Report', types=types,
-                           income_categories=income_categories, expense_categories=expense_categories)
+                           income_categories=income_categories, expense_categories=expense_categories,
+                           income_sum=income_sum, expense_sum=expense_sum)
 
 
 @app.route('/reports/budgets')
