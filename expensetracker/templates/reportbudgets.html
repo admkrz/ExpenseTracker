@@ -7,6 +7,48 @@
 
 {% block content %}
 
- <h1>Monthly Transactions Report</h1>
+    <h1>Day by day total Budgets balance</h1>
+    <br>
+    <div class="jumbotron" style="padding:2rem 1rem">
+        <div class="row">
+            <div class="col">
+                <div class="card border-secondary">
+                    <div class="card-header"><strong>Budgets total balance</strong></div>
+                    <div class="card-body-dash">
+                        <canvas id="budgetsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+            </div>
+        </div>
+    </div>
 
+    <script>
+        if (document.getElementById('budgetsChart') != null) {
+            var ctx = document.getElementById('budgetsChart').getContext('2d');
+            var chart = new Chart(ctx, {
+                // The type of chart we want to create
+                type: 'line',
+
+                // The data for our dataset
+                data: {
+                    labels: {{ budgets_days_labels|safe }},
+                    datasets: [{
+                        label: 'Budgets Balance',
+                        fill: false,
+                        lineTension: 0.1,
+                        backgroundColor: 'rgba(236, 43, 43, 1)',
+                        borderColor: 'rgba(63, 191, 80, 1)',
+                        data: {{ budgets_days_data|safe }}
+                    }]
+                },
+
+                // Configuration options go here
+                options: {}
+            });
+        }
+    </script>
 {% endblock %}

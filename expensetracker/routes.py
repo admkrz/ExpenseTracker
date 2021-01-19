@@ -160,9 +160,6 @@ def index():
 
         (monthly_labels, monthly_expenses, monthly_incomes) = get_monthly_transactions(user.budgets.filter_by().all())
 
-        print(monthly_expenses)
-        print(monthly_incomes)
-
         return render_template('index.html',
                                expenses=sorted(expenses, key=operator.attrgetter("date"), reverse=True)[0:5],
                                incomes=sorted(incomes, key=operator.attrgetter("date"), reverse=True)[0:5],
@@ -563,13 +560,19 @@ def reports():
 @app.route('/reports/daily')
 @login_required
 def report_daily():
-    return render_template('reportdaily.html', title='Daily Report')
+    user = User.query.filter_by(username=current_user.username).first()
+    (daily_labels, daily_expenses, daily_incomes) = get_daily_transactions(user.budgets.filter_by().all())
+    return render_template('reportdaily.html', title='Daily Report', daily_labels=daily_labels,
+                           daily_expenses=daily_expenses, daily_incomes=daily_incomes)
 
 
 @app.route('/reports/monthly')
 @login_required
 def report_monthly():
-    return render_template('reportmonthly.html', title='Monthly Report')
+    user = User.query.filter_by(username=current_user.username).first()
+    (monthly_labels, monthly_expenses, monthly_incomes) = get_monthly_transactions(user.budgets.filter_by().all())
+    return render_template('reportmonthly.html', title='Monthly Report', monthly_labels=monthly_labels,
+                           monthly_expenses=monthly_expenses, monthly_incomes=monthly_incomes)
 
 
 @app.route('/reports/categories')
@@ -599,4 +602,7 @@ def report_categories():
 @app.route('/reports/budgets')
 @login_required
 def report_budgets():
-    return render_template('reportbudgets.html', title='Budgets Report')
+    user = User.query.filter_by(username=current_user.username).first()
+    (budgets_days_labels, budgets_days_data) = budget_days_data(user.budgets.filter_by().all())
+    return render_template('reportbudgets.html', title='Budgets Report', budgets_days_labels=budgets_days_labels,
+                           budgets_days_data=budgets_days_data)

@@ -326,7 +326,7 @@
                                 <p class="card-text">Add expenses to your budgets to display information in
                                     this section!</p>
                                 <a class="btn btn-outline-info"
-                                   href={{ url_for('add_expenses') }} role="button">Expenses</a>
+                                   href={{ url_for('add_expenses') }} role="button">Add Expense</a>
                             </div>
                         </div>
                     {% endif %}
@@ -347,7 +347,7 @@
                                 <p class="card-text">Add incomes to your budgets to display information in
                                     this section!</p>
                                 <a class="btn btn-outline-info"
-                                   href={{ url_for('add_incomes') }} role="button">Incomes</a>
+                                   href={{ url_for('add_incomes') }} role="button">Add Income</a>
                             </div>
                         </div>
                     {% endif %}
@@ -380,8 +380,9 @@
                             <p class="card-text">Add transactions to your budgets to display information in
                                 this section!</p>
                             <a class="btn btn-outline-info"
-                               href={{ url_for('add_expenses') }} role="button">Expenses</a>
-                            <a class="btn btn-outline-info" href={{ url_for('add_incomes') }} role="button">Incomes</a>
+                               href={{ url_for('add_expenses') }} role="button">Add Expense</a>
+                            <a class="btn btn-outline-info" href={{ url_for('add_incomes') }} role="button">Add
+                                Income</a>
                         </div>
                     </div>
                 {% endif %}

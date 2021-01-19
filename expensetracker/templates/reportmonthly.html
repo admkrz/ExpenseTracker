@@ -1,7 +1,89 @@
 {% extends "layout.html" %}
 
+{% block scripts %}
+    <!--Chart.js-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+{% endblock %}
+
 {% block content %}
 
- <h1>Monthly Transactions Report</h1>
+    <h1>Last year's monthly Transactions Report</h1>
+    <br>
+    <div class="jumbotron" style="padding:2rem 1rem">
+        <div class="row">
+            <div class="col">
+                <div class="card border-secondary mb-3" style="max-width: 30rem;">
+                    <div class="card-header"><strong>Last year's Expenses</strong></div>
+                    <div class="card-body-dash">
+                        <canvas id="monthlyExpenseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
 
+            </div>
+        </div>
+    </div>
+
+    <div class="jumbotron" style="padding:2rem 1rem">
+        <div class="row">
+            <div class="col">
+                <div class="card border-secondary mb-3" style="max-width: 30rem;">
+                    <div class="card-header"><strong>Last year's Incomes</strong></div>
+                    <div class="card-body-dash">
+                        <canvas id="monthlyIncomeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var ctxMonthlyIncome = document.getElementById('monthlyIncomeChart').getContext('2d');
+        var chartMonthlyIncome = new Chart(ctxMonthlyIncome, {
+            // The type of chart we want to create
+            type: 'bar',
+
+            // The data for our dataset
+            data: {
+                labels: {{ monthly_labels|safe }},
+                datasets: [{
+                    label: 'Monthly Incomes',
+                    fill: false,
+                    lineTension: 0.1,
+                    backgroundColor: 'rgba(0, 102, 0, 1)',
+                    borderColor: 'rgba(0, 51, 0, 1)',
+                    data: {{ monthly_incomes|safe }}
+                }]
+            },
+
+            // Configuration options go here
+            options: {}
+        });
+
+        var ctxMonthlyExpense = document.getElementById('monthlyExpenseChart').getContext('2d');
+        var chartMonthlyExpense = new Chart(ctxMonthlyExpense, {
+            // The type of chart we want to create
+            type: 'bar',
+
+            // The data for our dataset
+            data: {
+                labels: {{ monthly_labels|safe }},
+                datasets: [{
+                    label: 'Monthly Expenses',
+                    fill: false,
+                    lineTension: 0.1,
+                    backgroundColor: 'rgba(255, 128, 0, 1)',
+                    borderColor: 'rgba(204, 102, 0, 1)',
+                    data: {{ monthly_expenses|safe }}
+                }]
+            },
+
+            // Configuration options go here
+            options: {}
+        });
+    </script>
 {% endblock %}
